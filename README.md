@@ -14,6 +14,18 @@ It's not a complete library yet, and some parts currently rely on the node.js cr
 ```typescript
 import * as asn1js from 'asn1js';
 import * as crypto from 'crypto';
+export type KeyExportType = 'spki' | 'pkcs8' | 'specific' | 'specific-private' | 'specific-public';
+export interface AlgorithmKeyImportOptions<T extends KeyFormat> {
+  format: T;
+  cipher?: string;
+  passphrase?: string | Buffer;
+}
+export interface KeyExportOptions<T extends KeyFormat> {
+  type: KeyExportType;
+  format: T;
+  cipher?: string;
+  passphrase?: string | Buffer;
+}
 
 /**
  * Create AsymmetricKeyObject with PrivateKey from der, pem or nodejs KeyObject.
@@ -81,8 +93,11 @@ export declare abstract class AsymmetricKeyAlgorithm {
         privateKey: AsymmetricKeyObject;
         publicKey: AsymmetricKeyObject;
     };
-    export(key: AsymmetricKeyObject, options: KeyExportOptions<'pem'>): string;
-    export(key: AsymmetricKeyObject, options?: KeyExportOptions<'der'>): Buffer;
+
+  public keyExport(key: AsymmetricKeyObject, options: KeyExportOptions<'pem'>): string;
+  public keyExport(key: AsymmetricKeyObject, options?: KeyExportOptions<'der'>): Buffer;
+  public keyImport(key: string, options: AlgorithmKeyImportOptions<'pem'>): AsymmetricKeyObject;
+  public keyImport(key: Buffer, options?: AlgorithmKeyImportOptions<'der'>): AsymmetricKeyObject;
 }
 export declare abstract class AsymmetricKeyObject extends KeyObject {
     static isAsymmetricKeyObject(o: any): boolean;
