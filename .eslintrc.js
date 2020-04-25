@@ -31,6 +31,7 @@ module.exports = {
     'keyword-spacing': ['error', {before: true, after: true}],
     'no-unused-vars': 'off',
     'no-fallthrough': 'off',
-    'no-empty': 'off'
+    'no-empty': 'off',
+    'no-constant-condition': 'off'
   }
 }

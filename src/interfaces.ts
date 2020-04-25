@@ -28,6 +28,11 @@ export enum AsymmetricAlgorithmType {
 }
 
 export type KeyExportType = 'spki' | 'pkcs8' | 'specific' | 'specific-private' | 'specific-public';
+export interface AlgorithmKeyImportOptions<T extends KeyFormat> {
+  format: T;
+  cipher?: string;
+  passphrase?: string | Buffer;
+}
 export interface KeyExportOptions<T extends KeyFormat> {
   type: KeyExportType;
   format: T;
@@ -66,6 +71,33 @@ function encodePemLines(input: string): string[] {
     remaining -= avail;
   }
   return lines;
+}
+
+const PEM_REGEX_BEGIN = /^-----BEGIN (.*)-----$/;
+const PEM_REGEX_END = /^-----END (.*)-----$/;
+function parsePem(input: string): {
+  pemTitle: string;
+  der: Buffer
+} {
+  const lines: string[] = input.trim().split(/\n/);
+  const beginLine = lines.shift();
+  const endLine = (lines.length > 0) && lines[lines.length - 1];
+  if (!beginLine || !endLine) {
+    throw new Error('Unknown PEM Format');
+  }
+  lines.pop();
+  const beginMatchers = beginLine.match(PEM_REGEX_BEGIN);
+  const endMatchers = endLine.match(PEM_REGEX_END);
+  if (!beginMatchers || !endMatchers) {
+    throw new Error('Unknown PEM Format');
+  }
+  if (endMatchers[1] !== beginMatchers[1]) {
+    throw new Error('Unknown PEM Format');
+  }
+  return {
+    pemTitle: beginMatchers[1],
+    der: Buffer.from(lines.join(''), 'base64')
+  };
 }
 
 const S_AsymmetricKeyAlgorithm = Symbol('AsymmetricKeyObject');
@@ -119,11 +151,11 @@ export abstract class AsymmetricKeyAlgorithm {
     privateKey: AsymmetricKeyObject,
     publicKey: AsymmetricKeyObject
   };
-  public export(key: AsymmetricKeyObject, options: KeyExportOptions<'pem'>): string;
-  public export(key: AsymmetricKeyObject, options?: KeyExportOptions<'der'>): Buffer;
-  public export(key: AsymmetricKeyObject, options?: KeyExportOptions<'der'> | KeyExportOptions<'pem'>): Buffer | string {
+  public keyExport(key: AsymmetricKeyObject, options: KeyExportOptions<'pem'>): string;
+  public keyExport(key: AsymmetricKeyObject, options?: KeyExportOptions<'der'>): Buffer;
+  public keyExport(key: AsymmetricKeyObject, options?: KeyExportOptions<'der'> | KeyExportOptions<'pem'>): Buffer | string {
     const format = options && options.format || 'der';
-    const result = this._export(key, options);
+    const result = this._keyExport(key, options);
     if (format === 'pem') {
       return '-----BEGIN ' + result.pemTitle + '-----\n' +
         encodePemLines(result.data.toString('base64')).join('\n') + '\n' +
@@ -132,7 +164,20 @@ export abstract class AsymmetricKeyAlgorithm {
     return result.data;
   }
 
-  protected abstract _export(key: AsymmetricKeyObject, options?: KeyExportOptions<'der' | 'pem'>): {
+  public keyImport(key: string, options: AlgorithmKeyImportOptions<'pem'>): AsymmetricKeyObject;
+  public keyImport(key: Buffer, options?: AlgorithmKeyImportOptions<'der'>): AsymmetricKeyObject;
+  public keyImport(key: string | Buffer, options?: AlgorithmKeyImportOptions<'pem' | 'der'>): AsymmetricKeyObject {
+    const format = options && options.format || 'der';
+    if (format === 'pem') {
+      const { pemTitle, der } = parsePem(key as string);
+      return this._keyImport(der, pemTitle, options);
+    }
+    return this._keyImport(key as Buffer, null, options);
+  }
+
+  protected abstract _keyImport(key: Buffer, pemTitle: string | null, options?: AlgorithmKeyImportOptions<'der' | 'pem'>): AsymmetricKeyObject;
+
+  protected abstract _keyExport(key: AsymmetricKeyObject, options?: KeyExportOptions<'der' | 'pem'>): {
     data: Buffer,
     pemTitle: string
   };
@@ -156,6 +201,8 @@ export abstract class AsymmetricKeyObject extends KeyObject {
 
   public abstract getKeyAlgorithm(): AsymmetricKeyAlgorithm;
 
+  public abstract equals(o: AsymmetricKeyObject): boolean;
+
   public publicEncrypt(data: Buffer): Buffer {
     return this.getKeyAlgorithm().publicEncrypt(data, this);
   }
@@ -175,7 +222,7 @@ export abstract class AsymmetricKeyObject extends KeyObject {
   public export(options: KeyExportOptions<'pem'>): string;
   public export(options?: KeyExportOptions<'der'>): Buffer;
   public export(options?: KeyExportOptions<any>): string | Buffer {
-    return this.getKeyAlgorithm().export(this, options);
+    return this.getKeyAlgorithm().keyExport(this, options);
   }
 
   public get algorithmType(): AsymmetricAlgorithmType {

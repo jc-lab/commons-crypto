@@ -13,6 +13,7 @@ import PrivateKeyInfo from './impl/asn/PrivateKeyInfo';
 import PublicKeyInfo from './impl/asn/PublicKeyInfo';
 
 import {
+  AlgorithmKeyImportOptions,
   AsymmetricAlgorithmType,
   AsymmetricKeyAlgorithm,
   AsymmetricKeyObject,
@@ -37,9 +38,10 @@ import * as rdsaSignature from './impl/rdsa-signature';
 import * as asymInterfaces from './impl/asymmetric-interface';
 import * as publicEncrypt from './impl/publicEncrypt';
 
+type KeyType = 'private' | 'public';
 interface KeyParams {
   curveOid?: string;
-  keyObject: crypto.KeyObject;
+  keyType: KeyType;
   type: AsymmetricAlgorithmType;
   asn1KeyParams: any;
   asn1KeyObject: any;
@@ -54,6 +56,11 @@ export class RSAKeyAlgorithm extends AsymmetricKeyAlgorithm {
   constructor(type: AsymmetricAlgorithmType, signable: boolean, keyAgreementable: boolean, cryptable: boolean, keySize: number) {
     super(type, signable, keyAgreementable, cryptable);
     this._keySize = keySize;
+  }
+
+  clone(keySize?: number): RSAKeyAlgorithm {
+    const _keySize = keySize || this._keySize;
+    return new RSAKeyAlgorithm(this.type, this.signable, this.keyAgreementable, this.cryptable, _keySize);
   }
 
   dhComputeSecret(publicKey: AsymmetricKeyObject, privateKey: AsymmetricKeyObject): Buffer {
@@ -117,11 +124,132 @@ export class RSAKeyAlgorithm extends AsymmetricKeyAlgorithm {
     return {} as any;
   }
 
-  _export(key: AsymmetricKeyObject, options?: KeyExportOptions<'der' | 'pem'>): {
+  _keyExport(key: AsymmetricKeyObject, options?: KeyExportOptions<'der' | 'pem'>): {
     data: Buffer,
     pemTitle: string
   } {
     throw new Error('Not implemented yet');
+  }
+
+  _keyImport(key: Buffer, pemTitle: string | null, options?: AlgorithmKeyImportOptions<'der' | 'pem'>): AsymmetricKeyObject {
+    let type = pemTitle ? pemTitle : null;
+    const asn = asn1js.fromBER(bufferToArrayBuffer(key));
+    let privateKeyInfo;
+    let asnRsaPrivateKey;
+    let asnRsaPublicKey;
+    let publicKeyInfo;
+    if (!type) {
+      do {
+        let result;
+        result = asn1js.compareSchema(asn.result, asn.result, PrivateKeyInfo.schema());
+        if (result.verified) {
+          privateKeyInfo = new PrivateKeyInfo({
+            schema: result.result
+          });
+          type = 'PRIVATE KEY';
+          asnRsaPrivateKey = privateKeyInfo.privateKey;
+          break;
+        }
+        result = asn1js.compareSchema(asn.result, asn.result, PublicKeyInfo.schema({
+          names: {
+            algorithm: {
+              names: {
+                blockName: 'algorithm'
+              }
+            },
+            subjectPublicKey: 'subjectPublicKey'
+          }
+        }));
+        if (result.verified) {
+          publicKeyInfo = new PublicKeyInfo({
+            schema: result.result
+          });
+          type = 'PUBLIC KEY';
+          asnRsaPublicKey = publicKeyInfo.subjectPublicKey;
+          break;
+        }
+
+        if (asn.result instanceof asn1js.Sequence) {
+          const seqLength = asn.result.valueBlock.value.length;
+          if (seqLength === 2) {
+            result = asn1js.compareSchema(asn.result, asn.result, RSAPublicKey.schema());
+            if (result.verified) {
+              asnRsaPublicKey = result.result;
+              type = 'RSA PUBLIC KEY';
+              break;
+            }
+          } else {
+            result = asn1js.compareSchema(asn.result, asn.result, RSAPrivateKey.schema());
+            if (result.verified) {
+              asnRsaPrivateKey = result.result;
+              type = 'RSA PRIVATE KEY';
+              break;
+            }
+          }
+        }
+      } while (0);
+    } else {
+      if (type === 'PRIVATE KEY') {
+        privateKeyInfo = new PrivateKeyInfo({
+          schema: asn.result
+        });
+        asnRsaPrivateKey = privateKeyInfo.privateKey;
+      } else if (type === 'RSA PRIVATE KEY') {
+        asnRsaPrivateKey = new RSAPrivateKey({
+          schema: asn.result
+        }).toSchema();
+      } else if (type === 'RSA PUBLIC KEY') {
+        asnRsaPublicKey = new RSAPublicKey({
+          schema: asn.result
+        }).toSchema();
+      } else if (type === 'PUBLIC KEY') {
+        publicKeyInfo = new PublicKeyInfo({
+          schema: asn.result
+        });
+        asnRsaPublicKey = publicKeyInfo.subjectPublicKey;
+      }
+    }
+    if (
+      (type != 'PRIVATE KEY') &&
+      (type != 'RSA PRIVATE KEY') &&
+      (type != 'RSA PUBLIC KEY') &&
+      (type != 'PUBLIC KEY')
+    ) {
+      throw new Error('Not supported key type: ' + type);
+    }
+
+    if (asnRsaPrivateKey && type.startsWith('RSA')) {
+      asnRsaPrivateKey = new asn1js.OctetString({
+        valueHex: asnRsaPrivateKey.toBER()
+      });
+    } else if (asnRsaPublicKey && type.startsWith('RSA')) {
+      asnRsaPublicKey = new asn1js.OctetString({
+        valueHex: asnRsaPublicKey.toBER()
+      });
+    }
+
+    if (type.endsWith('PRIVATE KEY')) {
+      return fromRSAKey({
+        type: AsymmetricAlgorithmType.rsa,
+        keyType: 'private',
+        asn1KeyParams: null,
+        asn1KeyObject: asnRsaPrivateKey,
+        signable: true,
+        keyAgreementable: true,
+        cryptable: true
+      });
+    } else if (type.endsWith('PUBLIC KEY')) {
+      return fromRSAKey({
+        type: AsymmetricAlgorithmType.rsa,
+        keyType: 'public',
+        asn1KeyParams: null,
+        asn1KeyObject: asnRsaPublicKey,
+        signable: true,
+        keyAgreementable: true,
+        cryptable: true
+      });
+    }
+    throw new Error('Unknown error');
   }
 }
 
@@ -227,15 +355,18 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
     };
   }
 
-  private _exportECPrivateKey(key: EllipticKeyObject): ECPrivateKey {
+  private _exportECPrivateKey(key: EllipticKeyObject, addAlgorithmParams?: boolean): ECPrivateKey {
     const publicKey = key.getECKeyPair().getPublic();
+    const _addAlgorithmParams = (typeof addAlgorithmParams === 'undefined') ? true : addAlgorithmParams;
     const options: any = {
       version: 1,
       privateKey: new asn1js.OctetString({
         valueHex: key.getECKeyPair().getPrivate().toBuffer()
-      }),
-      algorithmParams: this._algorithmParams
+      })
     };
+    if (_addAlgorithmParams) {
+      options['algorithmParams'] = this._algorithmParams;
+    }
     if (publicKey) {
       options['publicKey'] = this._exportECPublicKey(key);
     }
@@ -250,7 +381,7 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
     });
   }
 
-  _export(key: AsymmetricKeyObject, options?: KeyExportOptions<'der' | 'pem'>): {
+  _keyExport(key: AsymmetricKeyObject, options?: KeyExportOptions<'der' | 'pem'>): {
     data: Buffer,
     pemTitle: string
   } {
@@ -260,6 +391,24 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
       type = _key.isPrivate() ? 'specific-private' : 'specific-public';
     }
     switch (type) {
+    case 'pkcs8':
+    {
+      const ecKey = this._exportECPrivateKey(_key, false);
+      const privateKeyInfo = new PrivateKeyInfo({
+        version: 0,
+        privateKeyAlgorithm: new AlgorithmIdentifier({
+          algorithmId: this._algorithmOid.valueBlock.toString(),
+          algorithmParams: this._algorithmParams
+        }),
+        privateKey: new asn1js.OctetString({
+          valueHex: ecKey.toSchema().toBER()
+        })
+      });
+      return {
+        data: arrayBufferToBuffer(privateKeyInfo.toSchema().toBER()),
+        pemTitle: 'PRIVATE KEY'
+      };
+    }
     case 'specific-private':
     {
       const ecKey = this._exportECPrivateKey(_key);
@@ -287,41 +436,123 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
     }
     throw new Error('Not implemented yet');
   }
+
+  _keyImport(key: Buffer, pemTitle: string | null, options?: AlgorithmKeyImportOptions<'der' | 'pem'>): AsymmetricKeyObject {
+    let type = pemTitle ? pemTitle : null;
+    const asn = asn1js.fromBER(bufferToArrayBuffer(key));
+    let privateKeyInfo;
+    let asnEcPrivateKey;
+    let publicKeyInfo;
+    if (!type) {
+      do {
+        let result;
+        result = asn1js.compareSchema(asn.result, asn.result, PrivateKeyInfo.schema());
+        if (result.verified) {
+          privateKeyInfo = new PrivateKeyInfo({
+            schema: result.result
+          });
+          type = 'PRIVATE KEY';
+          break;
+        }
+        result = asn1js.compareSchema(asn.result, asn.result, ECPrivateKey.schema());
+        if (result.verified) {
+          asnEcPrivateKey = result.result;
+          type = 'EC PRIVATE KEY';
+          break;
+        }
+        result = asn1js.compareSchema(asn.result, asn.result, PublicKeyInfo.schema({
+          names: {
+            algorithm: {
+              names: {
+                blockName: 'algorithm'
+              }
+            },
+            subjectPublicKey: 'subjectPublicKey'
+          }
+        }));
+        if (result.verified) {
+          publicKeyInfo = new PublicKeyInfo({
+            schema: result.result
+          });
+          type = 'PUBLIC KEY';
+          break;
+        }
+      } while (0);
+    } else {
+      if (type === 'PRIVATE KEY') {
+        privateKeyInfo = new PrivateKeyInfo({
+          schema: asn.result
+        });
+      } else if (type === 'EC PRIVATE KEY') {
+        asnEcPrivateKey = new ECPrivateKey({
+          coordinateLength: this._curveOptions.byteLength,
+          schema: asn.result
+        }).toSchema();
+      } else if (type === 'PUBLIC KEY') {
+        publicKeyInfo = new PublicKeyInfo({
+          schema: asn.result
+        });
+      }
+    }
+    if (
+      (type != 'PRIVATE KEY') &&
+      (type != 'EC PRIVATE KEY') &&
+      (type != 'PUBLIC KEY')
+    ) {
+      throw new Error('Not supported key type: ' + type);
+    }
+
+    if (type === 'EC PRIVATE KEY') {
+      return EllipticKeyObject.fromBinary(this, 'private', asnEcPrivateKey.toBER());
+    } else if (type == 'PRIVATE KEY') {
+      return createAsymmetricKeyFromPrivateKeyInfo(privateKeyInfo);
+    } else if (type == 'PUBLIC KEY') {
+      const algorithmIdentifier = new AlgorithmIdentifier({
+        schema: publicKeyInfo.algorithm.toSchema()
+      });
+      return fromKeyObjectAndOid(
+        algorithmIdentifier.algorithmId,
+        'public',
+        algorithmIdentifier.algorithmParams,
+        publicKeyInfo.subjectPublicKey
+      );
+    }
+    throw new Error('Unknown error');
+  }
 }
 
 export class RSAKeyObject extends AsymmetricKeyObject {
   private _algo: RSAKeyAlgorithm;
-  private _signPrivateKey!: asymInterfaces.RSAPrivateKey;
-  private _signPublicKey!: asymInterfaces.RSAPublicKey;
+  private _signPrivateKey: asymInterfaces.RSAPrivateKey | null;
+  private _signPublicKey: asymInterfaces.RSAPublicKey;
 
-  constructor(algo: RSAKeyAlgorithm, options: KeyParams) {
+  constructor(algo: RSAKeyAlgorithm, options: KeyParams, bnPrivateKey: asymInterfaces.RSAPrivateKey | null, bnPublicKey: asymInterfaces.RSAPublicKey) {
     super();
 
     this._algo = algo;
+    this._signPrivateKey = bnPrivateKey;
+    this._signPublicKey = bnPublicKey;
+  }
 
-    const asn = asn1js.fromBER(options.asn1KeyObject.valueBlock.valueHex);
-    if (options.keyObject.type === 'private') {
-      const asnKey = new RSAPrivateKey({
-        schema: asn.result
-      });
-      this._signPrivateKey = {
-        privateExponent: new BN(arrayBufferToBuffer(asnKey.privateExponent.valueBlock.valueHex)),
-        publicExponent: new BN(arrayBufferToBuffer(asnKey.publicExponent.valueBlock.valueHex)),
-        modulus: new BN(arrayBufferToBuffer(asnKey.modulus.valueBlock.valueHex)),
-        prime1: new BN(arrayBufferToBuffer(asnKey.prime1.valueBlock.valueHex)),
-        prime2: new BN(arrayBufferToBuffer(asnKey.prime2.valueBlock.valueHex)),
-        exponent1: new BN(arrayBufferToBuffer(asnKey.exponent1.valueBlock.valueHex)),
-        exponent2: new BN(arrayBufferToBuffer(asnKey.exponent2.valueBlock.valueHex)),
-        coefficient: new BN(arrayBufferToBuffer(asnKey.coefficient.valueBlock.valueHex))
-      };
+  equals(o: RSAKeyObject): boolean {
+    if (!o) {
+      return false;
+    }
+    if (this.isPrivate()) {
+      const thisBnKey = this._signPrivateKey as asymInterfaces.RSAPrivateKey;
+      const otherBnKey = o._signPrivateKey as asymInterfaces.RSAPrivateKey;
+      return (
+        thisBnKey.publicExponent.eq(otherBnKey.publicExponent) &&
+        thisBnKey.modulus.eq(otherBnKey.modulus) &&
+        thisBnKey.privateExponent.eq(otherBnKey.privateExponent)
+      );
     } else {
-      const asnKey = new RSAPublicKey({
-        schema: asn.result
-      });
-      this._signPublicKey = {
-        publicExponent: new BN(arrayBufferToBuffer(asnKey.publicExponent.valueBlock.valueHex)),
-        modulus: new BN(arrayBufferToBuffer(asnKey.modulus.valueBlock.valueHex))
-      };
+      const thisBnKey = this._signPublicKey as asymInterfaces.RSAPublicKey;
+      const otherBnKey = o._signPublicKey as asymInterfaces.RSAPublicKey;
+      return (
+        thisBnKey.publicExponent.eq(otherBnKey.publicExponent) &&
+        thisBnKey.modulus.eq(otherBnKey.modulus)
+      );
     }
   }
 
@@ -342,7 +573,7 @@ export class RSAKeyObject extends AsymmetricKeyObject {
   }
 
   public getBNPrivateKey(): RSAPrivateKey {
-    return this._signPrivateKey;
+    return this._signPrivateKey as RSAPrivateKey;
   }
 
   public getBNPublicKey(): RSAPublicKey {
@@ -362,6 +593,17 @@ export class EllipticKeyObject extends AsymmetricKeyObject {
     super();
     this._algo = algo;
     this._keyPair = keyPair;
+  }
+
+  equals(o: EllipticKeyObject): boolean {
+    if (!o) {
+      return false;
+    }
+    if (this.isPrivate()) {
+      return this._keyPair.getPrivate().eq(o._keyPair.getPrivate());
+    } else {
+      return this._keyPair.getPublic().eq(o._keyPair.getPublic());
+    }
   }
 
   public static fromEllipticKeyPair(algo: EllipticAlgorithm, keyPair: elliptic.ec.KeyPair): EllipticKeyObject {
@@ -544,10 +786,40 @@ class ECParameters {
 }
 
 function fromRSAKey(options: KeyParams): AsymmetricKeyObject {
+  const asn = asn1js.fromBER(options.asn1KeyObject.valueBlock.valueHex);
+  let bnPrivateKey;
+  let bnPublicKey;
+  if (options.keyType === 'private') {
+    const asnKey = new RSAPrivateKey({
+      schema: asn.result
+    });
+    bnPrivateKey = {
+      privateExponent: new BN(arrayBufferToBuffer(asnKey.privateExponent.valueBlock.valueHex)),
+      publicExponent: new BN(arrayBufferToBuffer(asnKey.publicExponent.valueBlock.valueHex)),
+      modulus: new BN(arrayBufferToBuffer(asnKey.modulus.valueBlock.valueHex)),
+      prime1: new BN(arrayBufferToBuffer(asnKey.prime1.valueBlock.valueHex)),
+      prime2: new BN(arrayBufferToBuffer(asnKey.prime2.valueBlock.valueHex)),
+      exponent1: new BN(arrayBufferToBuffer(asnKey.exponent1.valueBlock.valueHex)),
+      exponent2: new BN(arrayBufferToBuffer(asnKey.exponent2.valueBlock.valueHex)),
+      coefficient: new BN(arrayBufferToBuffer(asnKey.coefficient.valueBlock.valueHex))
+    };
+    bnPublicKey = {
+      publicExponent: new BN(bnPrivateKey.publicExponent),
+      modulus: new BN(bnPrivateKey.modulus)
+    };
+  } else {
+    const asnPublicKey = new RSAPublicKey({
+      schema: asn.result
+    });
+    bnPublicKey = {
+      publicExponent: new BN(arrayBufferToBuffer(asnPublicKey.publicExponent.valueBlock.valueHex)),
+      modulus: new BN(arrayBufferToBuffer(asnPublicKey.modulus.valueBlock.valueHex))
+    };
+  }
   const algo: RSAKeyAlgorithm = new RSAKeyAlgorithm(
-    AsymmetricAlgorithmType.rsa, true, true, true, options.keyObject.asymmetricKeySize as number
+    AsymmetricAlgorithmType.rsa, true, true, true, bnPublicKey.modulus.bitLength()
   );
-  return new RSAKeyObject(algo, options);
+  return new RSAKeyObject(algo, options, bnPrivateKey, bnPublicKey);
 }
 
 function fromCurve(options: KeyParams): EllipticKeyObject {
@@ -566,7 +838,7 @@ function fromCurve(options: KeyParams): EllipticKeyObject {
       arrayBufferToBuffer(ecParameters.base.valueBlock.valueHex.slice(1, 1 + gLength)).toString('hex'),
       arrayBufferToBuffer(ecParameters.base.valueBlock.valueHex.slice(1 + gLength, 1 + gLength + gLength)).toString('hex')
     ];
-    const curveOptions = {
+    const curveOptions: CurveOptions = {
       type: 'short',
       prime: null,
       p: arrayBufferToBuffer(p.valueBlock.valueHex).toString('hex'),
@@ -575,13 +847,15 @@ function fromCurve(options: KeyParams): EllipticKeyObject {
       n: arrayBufferToBuffer(ecParameters.order.valueBlock.valueHex).toString('hex'),
       hash: hashjs.sha256,
       gRed: false,
-      g: g
+      g: g,
+      byteLength: 0
     };
     ec = {
       preset: new elliptic.curves.PresetCurve(curveOptions),
-      options: curveOptions as CurveOptions,
+      options: curveOptions,
       compiled: compileCurve(curveOptions as CurveOptions)
     };
+    ec.options.byteLength = ec.compiled.p.bitLength() / 8;
   }
   if (!ec) {
     throw new Error('Not supported Key: ' + (namedOid ? namedOid.valueBlock.toString() : 'null'));
@@ -594,16 +868,16 @@ function fromCurve(options: KeyParams): EllipticKeyObject {
     }),
     namedOid, options.asn1KeyParams
   );
-  return EllipticKeyObject.fromBinary(algo, (options.keyObject as any).type, options.asn1KeyObject.valueBlock.valueHex);
+  return EllipticKeyObject.fromBinary(algo, options.keyType, options.asn1KeyObject.valueBlock.valueHex);
 }
 
-function fromKeyObjectAndOid(oid: string, key: crypto.KeyObject, asn1KeyParams, asn1KeyObject): AsymmetricKeyObject {
+function fromKeyObjectAndOid(oid: string, keyType: KeyType, asn1KeyParams, asn1KeyObject): AsymmetricKeyObject {
   switch (oid) {
   case '1.2.840.113549.1.1.1':
     // RSAPrivateKey
     return fromRSAKey({
       type: AsymmetricAlgorithmType.rsa,
-      keyObject: key,
+      keyType: keyType,
       asn1KeyParams: asn1KeyParams,
       asn1KeyObject: asn1KeyObject,
       signable: true,
@@ -614,7 +888,7 @@ function fromKeyObjectAndOid(oid: string, key: crypto.KeyObject, asn1KeyParams, 
     // DSAparam;
     return fromRSAKey({
       type: AsymmetricAlgorithmType.dsa,
-      keyObject: key,
+      keyType: keyType,
       asn1KeyParams: asn1KeyParams,
       asn1KeyObject: asn1KeyObject,
       signable: true,
@@ -626,7 +900,7 @@ function fromKeyObjectAndOid(oid: string, key: crypto.KeyObject, asn1KeyParams, 
     return fromCurve({
       curveOid: oid,
       type: AsymmetricAlgorithmType.ec,
-      keyObject: key,
+      keyType: keyType,
       asn1KeyParams: asn1KeyParams,
       asn1KeyObject: asn1KeyObject,
       signable: true,
@@ -638,7 +912,7 @@ function fromKeyObjectAndOid(oid: string, key: crypto.KeyObject, asn1KeyParams, 
     return fromCurve({
       curveOid: oid,
       type: AsymmetricAlgorithmType.x25519,
-      keyObject: key,
+      keyType: keyType,
       asn1KeyParams: asn1KeyParams,
       asn1KeyObject: asn1KeyObject,
       signable: false,
@@ -650,7 +924,7 @@ function fromKeyObjectAndOid(oid: string, key: crypto.KeyObject, asn1KeyParams, 
     return fromCurve({
       curveOid: oid,
       type: AsymmetricAlgorithmType.x448,
-      keyObject: key,
+      keyType: keyType,
       asn1KeyParams: asn1KeyParams,
       asn1KeyObject: asn1KeyObject,
       signable: false,
@@ -662,7 +936,7 @@ function fromKeyObjectAndOid(oid: string, key: crypto.KeyObject, asn1KeyParams, 
     return fromCurve({
       curveOid: oid,
       type: AsymmetricAlgorithmType.edwards,
-      keyObject: key,
+      keyType: keyType,
       asn1KeyParams: asn1KeyParams,
       asn1KeyObject: asn1KeyObject,
       signable: true,
@@ -674,7 +948,7 @@ function fromKeyObjectAndOid(oid: string, key: crypto.KeyObject, asn1KeyParams, 
     return fromCurve({
       curveOid: oid,
       type: AsymmetricAlgorithmType.edwards,
-      keyObject: key,
+      keyType: keyType,
       asn1KeyParams: asn1KeyParams,
       asn1KeyObject: asn1KeyObject,
       signable: true,
@@ -685,8 +959,17 @@ function fromKeyObjectAndOid(oid: string, key: crypto.KeyObject, asn1KeyParams, 
   throw new Error('Not supported key');
 }
 
+function createAsymmetricKeyFromPrivateKeyInfo(privateKeyInfo: PrivateKeyInfo): AsymmetricKeyObject {
+  const algorithmIdentifier = privateKeyInfo.privateKeyAlgorithm;
+  return fromKeyObjectAndOid(
+    algorithmIdentifier.algorithmId,
+    'private',
+    algorithmIdentifier.algorithmParams,
+    privateKeyInfo.privateKey
+  );
+}
+
 export function createAsymmetricKeyFromNode(key: crypto.KeyObject): AsymmetricKeyObject {
-  let algorithmIdentifier: AlgorithmIdentifier | null = null;
   let privateKeyInfo: PrivateKeyInfo | null = null;
   let publicKeyInfo: PublicKeyInfo | null = null;
 
@@ -700,14 +983,7 @@ export function createAsymmetricKeyFromNode(key: crypto.KeyObject): AsymmetricKe
       schema: result
     });
 
-    algorithmIdentifier = privateKeyInfo.privateKeyAlgorithm;
-
-    return fromKeyObjectAndOid(
-      algorithmIdentifier.algorithmId,
-      key,
-      algorithmIdentifier.algorithmParams,
-      privateKeyInfo.privateKey
-    );
+    return createAsymmetricKeyFromPrivateKeyInfo(privateKeyInfo);
   }
   else if (key.type === 'public') {
     const ber = bufferToArrayBuffer(key.export({
@@ -719,11 +995,11 @@ export function createAsymmetricKeyFromNode(key: crypto.KeyObject): AsymmetricKe
       schema: result
     });
 
-    algorithmIdentifier = publicKeyInfo.algorithm;
+    const algorithmIdentifier = publicKeyInfo.algorithm;
 
     return fromKeyObjectAndOid(
       algorithmIdentifier.algorithmId,
-      key,
+      'public',
       algorithmIdentifier.algorithmParams,
       publicKeyInfo.subjectPublicKey
     );

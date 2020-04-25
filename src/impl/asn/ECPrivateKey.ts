@@ -1,7 +1,7 @@
 import * as asn1js from 'asn1js';
 import * as pvutils from 'pvutils';
 import { getParametersValue, toBase64, arrayBufferToString, stringToArrayBuffer, fromBase64 } from 'pvutils';
-import ECPublicKey from 'pkijs/build/ECPublicKey.js';
+import ECPublicKey from './ECPublicKey';
 const clearProps = (pvutils as any).clearProps;
 
 //**************************************************************************************
@@ -12,9 +12,11 @@ export default class ECPrivateKey
 {
   version!: asn1js.Integer;
   namedCurve!: string;
-  algorithmParams!: asn1js.Any;
+  algorithmParams: asn1js.Any | null = null;
   privateKey!: asn1js.OctetString;
   publicKey!: ECPublicKey;
+
+  coordinateLength: number = 0;
 
   //**********************************************************************************
   /**
@@ -23,6 +25,7 @@ export default class ECPrivateKey
    * @param {Object} [parameters.schema] asn1js parsed value to initialize the class from
    */
   constructor(parameters: {
+    coordinateLength?: number,
     version?: asn1js.Integer,
     namedCurve?: string,
     algorithmParams?: asn1js.Any,
@@ -33,6 +36,11 @@ export default class ECPrivateKey
   } = {})
   {
     //region Internal properties of the object
+
+    if (parameters && parameters['coordinateLength']) {
+      this.coordinateLength = parameters.coordinateLength;
+    }
+
     /**
      * @type {number}
      * @desc version
@@ -51,12 +59,13 @@ export default class ECPrivateKey
     if (this.algorithmParams instanceof asn1js.ObjectIdentifier) {
       this.namedCurve = this.algorithmParams.valueBlock.toString();
     } else {
-      if ('namedCurve' in parameters)
+      if ('namedCurve' in parameters) {
         /**
          * @type {string}
          * @desc namedCurve
          */
         this.namedCurve = getParametersValue(parameters, 'namedCurve', ECPrivateKey.defaultValues('namedCurve'));
+      }
     }
     if ('publicKey' in parameters)
       /**
@@ -80,7 +89,7 @@ export default class ECPrivateKey
    * Return default values for all class members
    * @param {string} memberName String name for a class member
    */
-  static defaultValues(memberName)
+  static defaultValues(memberName): any
   {
     switch (memberName)
     {
@@ -91,7 +100,7 @@ export default class ECPrivateKey
     case 'namedCurve':
       return '';
     case 'algorithmParams':
-      return new asn1js.Null();
+      return null;
     case 'publicKey':
       return new ECPublicKey();
     default:
@@ -163,7 +172,7 @@ export default class ECPrivateKey
             tagNumber: 0 // [0]
           },
           value: [
-            new asn1js.ObjectIdentifier({ name: (names.namedCurve || '') } as any)
+            new asn1js.Any({ name: (names.algorithmParams || '') } as any)
           ]
         } as any),
         new asn1js.Constructed({
@@ -218,11 +227,11 @@ export default class ECPrivateKey
     this.privateKey = asn1.result.privateKey;
 
     this.namedCurve = '';
-    this.algorithmParams = new asn1js.Any();
-    if ('algorithmParams' in asn1.result) {
+    this.algorithmParams = null;
+    if (asn1.result['algorithmParams']) {
       const algorithmParams = asn1.result.algorithmParams;
       if (algorithmParams instanceof asn1js.ObjectIdentifier) {
-        this.namedCurve = asn1.result.namedCurve.valueBlock.toString();
+        this.namedCurve = algorithmParams.valueBlock.toString();
       } else {
         this.algorithmParams = algorithmParams;
       }
@@ -230,7 +239,10 @@ export default class ECPrivateKey
 
     if ('publicKey' in asn1.result)
     {
-      const publicKeyData: any = { schema: asn1.result.publicKey.valueBlock.valueHex };
+      const publicKeyData: any = {
+        coordinateLength: this.coordinateLength,
+        schema: asn1.result.publicKey.valueBlock.valueHex
+      };
       if ('namedCurve' in this)
         publicKeyData.namedCurve = this.namedCurve;
 
@@ -262,15 +274,17 @@ export default class ECPrivateKey
         ]
       } as any));
     } else {
-      outputArray.push(new asn1js.Constructed({
-        idBlock: {
-          tagClass: 3, // CONTEXT-SPECIFIC
-          tagNumber: 0 // [0]
-        },
-        value: [
-          this.algorithmParams
-        ]
-      } as any));
+      if (this.algorithmParams) {
+        outputArray.push(new asn1js.Constructed({
+          idBlock: {
+            tagClass: 3, // CONTEXT-SPECIFIC
+            tagNumber: 0 // [0]
+          },
+          value: [
+            this.algorithmParams
+          ]
+        } as any));
+      }
     }
 
     if ('publicKey' in this)
