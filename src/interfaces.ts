@@ -1,4 +1,5 @@
 import * as asn1js from 'asn1js';
+import * as ccUtils from './utils';
 
 export type KeyFormat = 'pem' | 'der';
 
@@ -60,46 +61,6 @@ export abstract class KeyObject {
   public abstract isSecret(): boolean;
 }
 
-function encodePemLines(input: string): string[] {
-  let remaining = input.length;
-  let position = 0;
-  const lines: string[] = [];
-  while (remaining > 0) {
-    const avail = Math.min(remaining, 64);
-    lines.push(input.substr(position, avail));
-    position += avail;
-    remaining -= avail;
-  }
-  return lines;
-}
-
-const PEM_REGEX_BEGIN = /^-----BEGIN (.*)-----$/;
-const PEM_REGEX_END = /^-----END (.*)-----$/;
-function parsePem(input: string): {
-  pemTitle: string;
-  der: Buffer
-} {
-  const lines: string[] = input.trim().split(/\n/);
-  const beginLine = lines.shift();
-  const endLine = (lines.length > 0) && lines[lines.length - 1];
-  if (!beginLine || !endLine) {
-    throw new Error('Unknown PEM Format');
-  }
-  lines.pop();
-  const beginMatchers = beginLine.match(PEM_REGEX_BEGIN);
-  const endMatchers = endLine.match(PEM_REGEX_END);
-  if (!beginMatchers || !endMatchers) {
-    throw new Error('Unknown PEM Format');
-  }
-  if (endMatchers[1] !== beginMatchers[1]) {
-    throw new Error('Unknown PEM Format');
-  }
-  return {
-    pemTitle: beginMatchers[1],
-    der: Buffer.from(lines.join(''), 'base64')
-  };
-}
-
 const S_AsymmetricKeyAlgorithm = Symbol('AsymmetricKeyObject');
 export abstract class AsymmetricKeyAlgorithm {
   protected _type: AsymmetricAlgorithmType;
@@ -158,7 +119,7 @@ export abstract class AsymmetricKeyAlgorithm {
     const result = this._keyExport(key, options);
     if (format === 'pem') {
       return '-----BEGIN ' + result.pemTitle + '-----\n' +
-        encodePemLines(result.data.toString('base64')).join('\n') + '\n' +
+        ccUtils.encodePemLines(result.data.toString('base64')).join('\n') + '\n' +
         '-----END ' + result.pemTitle + '-----\n';
     }
     return result.data;
@@ -169,7 +130,7 @@ export abstract class AsymmetricKeyAlgorithm {
   public keyImport(key: string | Buffer, options?: AlgorithmKeyImportOptions<'pem' | 'der'>): AsymmetricKeyObject {
     const format = options && options.format || 'der';
     if (format === 'pem') {
-      const { pemTitle, der } = parsePem(key as string);
+      const { pemTitle, der } = ccUtils.parsePem(key as string);
       return this._keyImport(der, pemTitle, options);
     }
     return this._keyImport(key as Buffer, null, options);
