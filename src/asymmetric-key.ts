@@ -11,6 +11,7 @@ import RSAPublicKey from 'pkijs/build/RSAPublicKey';
 import ECPrivateKey from './impl/asn/ECPrivateKey';
 import PrivateKeyInfo from './impl/asn/PrivateKeyInfo';
 import PublicKeyInfo from './impl/asn/PublicKeyInfo';
+import ECParameters from './impl/asn/ECParameters';
 
 import {
   AlgorithmKeyImportOptions,
