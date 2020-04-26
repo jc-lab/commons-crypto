@@ -11,6 +11,8 @@ import {
   PrivateKeyInput
 } from './interfaces';
 
+export * from './interfaces';
+
 import {
   EllipticAlgorithm,
   EllipticKeyObject,
