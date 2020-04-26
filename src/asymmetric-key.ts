@@ -31,8 +31,7 @@ import {
   Curve,
   CurveOptions,
   compileCurve,
-  getCurveByOid,
-  getCurveByParams
+  getCurveByOid
 } from './impl/curves';
 import ECDH from './impl/ecdh';
 import * as rdsaSignature from './impl/rdsa-signature';
@@ -272,14 +271,7 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
     this._curveOptions = curveOptions;
     this._algorithmOid = algorithmOid;
     this._algorithmParams = algorithmParams;
-    if (namedCurveOid) {
-      this._namedCurveOid = namedCurveOid;
-    } else {
-      const foundCurve = getCurveByParams(curveOptions);
-      this._namedCurveOid = foundCurve ? new asn1js.ObjectIdentifier({
-        value: foundCurve.oid
-      }) : null;
-    }
+    this._namedCurveOid = namedCurveOid;
   }
 
   public isShortCurve() {
@@ -626,7 +618,9 @@ export class EllipticKeyObject extends AsymmetricKeyObject {
     const asn = asn1js.fromBER(keyObject);
     if (type === 'private') {
       keyPair = algo.getElliptic().keyFromPrivate(
-        arrayBufferToBuffer((asn.result as any).valueBlock.value[1].valueBlock.valueHex)
+        (asn.result as any) instanceof asn1js.Sequence ?
+          arrayBufferToBuffer((asn.result as any).valueBlock.value[1].valueBlock.valueHex) :
+          arrayBufferToBuffer(keyObject)
       );
     } else {
       keyPair = algo.getElliptic().keyFromPublic(
@@ -653,157 +647,14 @@ export class EllipticKeyObject extends AsymmetricKeyObject {
   }
 }
 
-class ECCurve {
-  public a!: asn1js.OctetString;
-  public b!: asn1js.OctetString;
-  public seed!: asn1js.BitString;
-
-  public constructor(params?: {
-    schema?: any,
-    a?: asn1js.OctetString,
-    b?: asn1js.OctetString,
-    seed?: asn1js.BitString
-  }) {
-    if (params) {
-      if (params.schema) {
-        this.fromSchema(params.schema);
-        return;
-      }
-
-      this.a = params.a as asn1js.OctetString;
-      this.b = params.b as asn1js.OctetString;
-      this.seed = params.seed as asn1js.BitString;
-    }
-  }
-
-  public static schema (opts?: { name?: string}): asn1js.Sequence {
-    const schemaParameters: any = {
-      value: [
-        new asn1js.OctetString({
-          name: 'a'
-        } as any),
-        new asn1js.OctetString({
-          name: 'b'
-        } as any),
-        new asn1js.BitString({
-          name: 'seed',
-          optional: true
-        } as any)
-      ]
-    };
-    if (opts && opts.name) {
-      schemaParameters['name'] = opts && opts.name;
-    }
-    return new asn1js.Sequence(schemaParameters);
-  }
-
-  public fromSchema(seq: any) {
-    const schema = ECCurve.schema();
-    const asn1 = asn1js.compareSchema(seq, seq, schema);
-    if (!asn1.verified) {
-      throw new Error('Not verified input data');
-    }
-    this.a = asn1.result.a;
-    this.b = asn1.result.b;
-    this.seed = asn1.result.seed;
-  }
-}
-
-class ECParameters {
-  public version!: asn1js.Integer;
-  public fieldID!: asn1js.Sequence;
-  public curve!: ECCurve;
-  public base!: asn1js.OctetString;
-  public order!: asn1js.Integer;
-  public cofactor!: asn1js.Integer;
-
-  public constructor(params?: {
-    schema?: any,
-    version?: asn1js.Integer,
-    fieldID?: asn1js.Sequence,
-    curve?: ECCurve,
-    base?: asn1js.OctetString,
-    order?: asn1js.Integer,
-    cofactor?: asn1js.Integer
-  }) {
-    if (params) {
-      if (params.schema) {
-        this.fromSchema(params.schema);
-        return;
-      }
-
-      this.version = params.version as asn1js.Integer;
-      this.fieldID = params.fieldID as asn1js.Sequence;
-      this.curve = params.curve as ECCurve;
-      this.base = params.base as asn1js.OctetString;
-      this.order = params.order as asn1js.Integer;
-      this.cofactor = params.cofactor as asn1js.Integer;
-    }
-  }
-
-  public static schema (opts?: { name?: string}): asn1js.Sequence {
-    const schemaParameters: any = {
-      value: [
-        new asn1js.Integer({
-          name: 'version'
-        } as any),
-        new asn1js.Sequence({
-          name: 'fieldID',
-          value: [
-            new asn1js.ObjectIdentifier({
-              name: 'fieldType'
-            } as any),
-            new asn1js.Any({
-              name: 'parameters'
-            })
-          ]
-        } as any),
-        ECCurve.schema({
-          name: 'curve'
-        }),
-        new asn1js.OctetString({
-          name: 'base'
-        } as any),
-        new asn1js.Integer({
-          name: 'order'
-        } as any),
-        new asn1js.Integer({
-          name: 'cofactor',
-          optional: true
-        } as any),
-      ]
-    };
-    if (opts && opts.name) {
-      schemaParameters['name'] = opts && opts.name;
-    }
-    return new asn1js.Sequence(schemaParameters);
-  }
-
-  public fromSchema(seq: any) {
-    const schema = ECParameters.schema();
-    const asn1 = asn1js.compareSchema(seq, seq, schema);
-    if (!asn1.verified) {
-      throw new Error('Not verified input data');
-    }
-    this.version = asn1.result.version;
-    this.base = asn1.result.base;
-    this.order = asn1.result.order;
-    this.cofactor = asn1.result.cofactor;
-    this.fieldID = asn1.result.fieldID;
-    this.curve = new ECCurve({
-      schema: asn1.result.curve
-    });
-  }
-}
-
-function fromRSAKey(options: KeyParams): AsymmetricKeyObject {
-  const asn = asn1js.fromBER(options.asn1KeyObject.valueBlock.valueHex);
+function fromRSAKey(options: KeyParams, decoded?: boolean): AsymmetricKeyObject {
+  const asn = decoded ? null : asn1js.fromBER(options.asn1KeyObject.valueBlock.valueHex);
   let bnPrivateKey;
   let bnPublicKey;
   if (options.keyType === 'private') {
-    const asnKey = new RSAPrivateKey({
+    const asnKey = asn ? new RSAPrivateKey({
       schema: asn.result
-    });
+    }) : options.asn1KeyObject;
     bnPrivateKey = {
       privateExponent: new BN(arrayBufferToBuffer(asnKey.privateExponent.valueBlock.valueHex)),
       publicExponent: new BN(arrayBufferToBuffer(asnKey.publicExponent.valueBlock.valueHex)),
@@ -819,9 +670,9 @@ function fromRSAKey(options: KeyParams): AsymmetricKeyObject {
       modulus: new BN(bnPrivateKey.modulus)
     };
   } else {
-    const asnPublicKey = new RSAPublicKey({
+    const asnPublicKey = asn ? new RSAPublicKey({
       schema: asn.result
-    });
+    }) : options.asn1KeyObject;
     bnPublicKey = {
       publicExponent: new BN(arrayBufferToBuffer(asnPublicKey.publicExponent.valueBlock.valueHex)),
       modulus: new BN(arrayBufferToBuffer(asnPublicKey.modulus.valueBlock.valueHex))
@@ -1017,5 +868,57 @@ export function createAsymmetricKeyFromNode(key: crypto.KeyObject): AsymmetricKe
   }
 
   throw new Error('Not supported key');
+}
+
+export type PEMTitle = 'PRIVATE KEY' | 'PUBLIC KEY' | 'EC PRIVATE KEY' | 'RSA PRIVATE KEY' | 'RSA PUBLIC KEY';
+export function createAsymmetricKeyFromAsn(pemTitle: 'PRIVATE KEY', asn: PrivateKeyInfo): AsymmetricKeyObject;
+export function createAsymmetricKeyFromAsn(pemTitle: 'PUBLIC KEY', asn: PublicKeyInfo): AsymmetricKeyObject;
+export function createAsymmetricKeyFromAsn(pemTitle: 'EC PRIVATE KEY', asn: ECPrivateKey): AsymmetricKeyObject;
+export function createAsymmetricKeyFromAsn(pemTitle: 'RSA PRIVATE KEY', asn: RSAPrivateKey): AsymmetricKeyObject;
+export function createAsymmetricKeyFromAsn(pemTitle: 'RSA PUBLIC KEY', asn: RSAPublicKey): AsymmetricKeyObject;
+export function createAsymmetricKeyFromAsn(pemTitle: PEMTitle, asn: any): AsymmetricKeyObject {
+  if (pemTitle === 'PRIVATE KEY') {
+    return createAsymmetricKeyFromPrivateKeyInfo(asn as PrivateKeyInfo);
+  } else if (pemTitle === 'EC PRIVATE KEY') {
+    const ecPrivateKey = asn as ECPrivateKey;
+    return fromKeyObjectAndOid(
+      '1.2.840.10045.2.1',
+      'private',
+      ecPrivateKey.algorithmParams,
+      ecPrivateKey.privateKey
+    );
+  } else if (pemTitle === 'RSA PRIVATE KEY') {
+    const rsaPrivateKey = asn as RSAPrivateKey;
+    return fromRSAKey({
+      type: AsymmetricAlgorithmType.rsa,
+      keyType: 'private',
+      asn1KeyParams: null,
+      asn1KeyObject: rsaPrivateKey,
+      signable: true,
+      keyAgreementable: true,
+      cryptable: true
+    }, true);
+  } else if (pemTitle === 'RSA PUBLIC KEY') {
+    const rsaPublicKey = asn as RSAPublicKey;
+    return fromRSAKey({
+      type: AsymmetricAlgorithmType.rsa,
+      keyType: 'public',
+      asn1KeyParams: null,
+      asn1KeyObject: rsaPublicKey,
+      signable: true,
+      keyAgreementable: true,
+      cryptable: true
+    }, true);
+  } else if (pemTitle === 'PUBLIC KEY') {
+    const publicKeyInfo = asn as PublicKeyInfo;
+    const algorithmIdentifier = publicKeyInfo.algorithm as AlgorithmIdentifier;
+    return fromKeyObjectAndOid(
+      algorithmIdentifier.algorithmId,
+      'public',
+      algorithmIdentifier.algorithmParams,
+      publicKeyInfo.subjectPublicKey
+    );
+  }
+  throw new Error('Unknown error');
 }
 
