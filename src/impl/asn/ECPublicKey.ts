@@ -2,6 +2,9 @@ import * as asn1js from 'asn1js';
 import {
   getParametersValue, utilConcatBuf, isEqualBuffer, toBase64, fromBase64, arrayBufferToString, stringToArrayBuffer
 } from 'pvutils';
+
+import * as curves from '../curves';
+
 //**************************************************************************************
 /**
  * Class from RFC5480
@@ -129,17 +132,10 @@ export default class ECPublicKey
     let coordinateLength = this.coordinateLength;
 
     if (!coordinateLength) {
-      switch (this.namedCurve) {
-      case '1.2.840.10045.3.1.7': // P-256
-        coordinateLength = 32;
-        break;
-      case '1.3.132.0.34': // P-384
-        coordinateLength = 48;
-        break;
-      case '1.3.132.0.35': // P-521
-        coordinateLength = 66;
-        break;
-      default:
+      const curve = curves.getCurveByOid(this.namedCurve);
+      if (curve) {
+        coordinateLength = curve.options.byteLength;
+      } else {
         throw new Error(`Incorrect curve OID: ${this.namedCurve}`);
       }
     }

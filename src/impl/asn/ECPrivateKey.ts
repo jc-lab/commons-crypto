@@ -2,6 +2,9 @@ import * as asn1js from 'asn1js';
 import * as pvutils from 'pvutils';
 import { getParametersValue, toBase64, arrayBufferToString, stringToArrayBuffer, fromBase64 } from 'pvutils';
 import ECPublicKey from './ECPublicKey';
+import ECParameters from './ECParameters';
+import BN from 'bn.js';
+import { arrayBufferToBuffer } from '../../utils';
 const clearProps = (pvutils as any).clearProps;
 
 //**************************************************************************************
@@ -13,6 +16,7 @@ export default class ECPrivateKey
   version!: asn1js.Integer;
   namedCurve!: string;
   algorithmParams: asn1js.Any | null = null;
+  ecParameters: ECParameters | null = null;
   privateKey!: asn1js.OctetString;
   publicKey!: ECPublicKey;
 
@@ -228,17 +232,25 @@ export default class ECPrivateKey
 
     this.namedCurve = '';
     this.algorithmParams = null;
+    this.ecParameters = null;
     if (asn1.result['algorithmParams']) {
       const algorithmParams = asn1.result.algorithmParams;
+      this.algorithmParams = algorithmParams;
       if (algorithmParams instanceof asn1js.ObjectIdentifier) {
         this.namedCurve = algorithmParams.valueBlock.toString();
       } else {
-        this.algorithmParams = algorithmParams;
+        this.ecParameters = new ECParameters({
+          schema: algorithmParams
+        });
       }
     }
 
     if ('publicKey' in asn1.result)
     {
+      if (!this.namedCurve && this.ecParameters) {
+        const p = this.ecParameters.fieldID.valueBlock.value[1] as asn1js.Integer;
+        this.coordinateLength = new BN(arrayBufferToBuffer(p.valueBlock.valueHex)).bitLength() / 8;
+      }
       const publicKeyData: any = {
         coordinateLength: this.coordinateLength,
         schema: asn1.result.publicKey.valueBlock.valueHex
