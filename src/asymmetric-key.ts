@@ -539,7 +539,12 @@ export class RSAKeyObject extends AsymmetricKeyObject {
     if (!o) {
       return false;
     }
-    if (this.isPrivate()) {
+    if (!(
+      (this.isPrivate() && o.isPrivate()) || (this.isPublic() && o.isPublic())
+    )) {
+      return false;
+    }
+    if (this.isPrivate() && o.isPrivate()) {
       const thisBnKey = this._signPrivateKey as asymInterfaces.RSAPrivateKey;
       const otherBnKey = o._signPrivateKey as asymInterfaces.RSAPrivateKey;
       return (
@@ -598,6 +603,11 @@ export class EllipticKeyObject extends AsymmetricKeyObject {
 
   equals(o: EllipticKeyObject): boolean {
     if (!o) {
+      return false;
+    }
+    if (!(
+      (this.isPrivate() && o.isPrivate()) || (this.isPublic() && o.isPublic())
+    )) {
       return false;
     }
     if (this.isPrivate()) {
