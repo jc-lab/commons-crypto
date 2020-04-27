@@ -28,11 +28,14 @@ import {
   parsePem,
   bufferToArrayBuffer
 } from './utils';
-import PrivateKeyInfo from './impl/asn/PrivateKeyInfo';
-import PublicKeyInfo from './impl/asn/PublicKeyInfo';
 import RSAPrivateKey from 'pkijs/build/RSAPrivateKey';
 import RSAPublicKey from 'pkijs/build/RSAPublicKey';
+import PrivateKeyInfo from './impl/asn/PrivateKeyInfo';
+import PublicKeyInfo from './impl/asn/PublicKeyInfo';
+import ECCurve from './impl/asn/ECCurve';
+import ECParameters from './impl/asn/ECParameters';
 import ECPrivateKey from './impl/asn/ECPrivateKey';
+import ECPublicKey from './impl/asn/ECPublicKey';
 
 const impls = Object.freeze({
   rdsaSignature,
@@ -40,9 +43,19 @@ const impls = Object.freeze({
   ecdh
 });
 
+const asn = Object.freeze({
+  ECCurve,
+  ECParameters,
+  ECPrivateKey,
+  ECPublicKey,
+  PrivateKeyInfo,
+  PublicKeyInfo
+});
+
 export {
   utils,
-  impls
+  impls,
+  asn
 };
 
 function createAsymmetricKeyWithType(
