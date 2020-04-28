@@ -1,5 +1,7 @@
 # commons-crypto
 
+[![Build Status](https://travis-ci.com/jc-lab/commons-crypto.svg?branch=master)](https://travis-ci.com/jc-lab/commons-crypto)
+
 common-crypto is a library that implements cryptographic functions.
 It basically aims to support node.js and browser.
 
