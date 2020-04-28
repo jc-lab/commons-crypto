@@ -43,6 +43,13 @@ export function createPrivateKey(key: crypto.PrivateKeyInput | string | Buffer |
  */
 export function createPublicKey(key: crypto.PublicKeyInput | string | Buffer | crypto.KeyObject): AsymmetricKeyObject;
 
+/**
+ * Create AsymmetricKeyObject with PublicKey from der or pem
+ *
+ * @param key Public Key or Private Key
+ */
+export function createAsymmetricKey(key: PrivateKeyInput | PublicKeyInput): AsymmetricKeyObject;
+
 export declare type KeyFormat = 'pem' | 'der';
 export interface PublicKeyInput {
     key: string | Buffer;

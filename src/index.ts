@@ -122,6 +122,11 @@ export function createPublicKey(key: PublicKeyInput | string | Buffer | crypto.K
   }
 }
 
+/**
+ * Create AsymmetricKeyObject with PublicKey from der or pem
+ *
+ * @param key Public Key or Private Key
+ */
 export function createAsymmetricKey(key: PrivateKeyInput | PublicKeyInput): AsymmetricKeyObject {
   const format = key.format || (Buffer.isBuffer(key.key) ? 'der' : 'pem');
   let pemTitle: PEMTitle | null = null;
