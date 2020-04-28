@@ -51,6 +51,7 @@
     "create-hmac": "^1.1.7",
     "elliptic": "^6.5.2",
     "pkijs": "^2.1.88",
+    "pvutils": "^1.0.17",
     "randombytes": "^2.1.0"
   }
 }
