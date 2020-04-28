@@ -11,7 +11,7 @@
     "test:lint": "eslint --ext \".js,.ts\" ./src",
     "test:mocha": "mocha -r ts-node/register --recursive test/**/*.ts",
     "build": "tsc",
-    "prepublish": "npm run test && npm run build"
+    "prepack": "npm run test && npm run build"
   },
   "repository": {
     "type": "git",
