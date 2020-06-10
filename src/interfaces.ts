@@ -6,7 +6,7 @@ export type KeyFormat = 'pem' | 'der';
 export interface PublicKeyInput {
   key: string | Buffer;
   format?: KeyFormat;
-  type?: 'pkcs1' | 'spki';
+  type?: 'pkcs1' | 'spki' | 'x509';
 }
 
 export interface PrivateKeyInput {

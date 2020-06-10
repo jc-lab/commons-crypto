@@ -30,6 +30,7 @@ import {
 } from './utils';
 import RSAPrivateKey from 'pkijs/build/RSAPrivateKey';
 import RSAPublicKey from 'pkijs/build/RSAPublicKey';
+import Certificate from 'pkijs/build/Certificate';
 import PrivateKeyInfo from './impl/asn/PrivateKeyInfo';
 import PublicKeyInfo from './impl/asn/PublicKeyInfo';
 import ECCurve from './impl/asn/ECCurve';
@@ -86,6 +87,11 @@ function createAsymmetricKeyWithType(
       schema: asn.result
     });
     return createAsymmetricKeyFromAsn(pemTitle, rsaPublicKey);
+  } else if (pemTitle === 'CERTIFICATE') {
+    const rsaPublicKey = new Certificate({
+      schema: asn.result
+    });
+    return createAsymmetricKeyFromAsn(pemTitle, rsaPublicKey);
   }
   throw new Error('Unknown pem title: ' + pemTitle);
 }
@@ -117,7 +123,7 @@ export function createPublicKey(key: PublicKeyInput | string | Buffer | crypto.K
     return createAsymmetricKeyFromNode(key);
   } else {
     return createAsymmetricKeyFromNode(
-      crypto.createPublicKey(key)
+      crypto.createPublicKey(key as any)
     );
   }
 }
@@ -142,6 +148,9 @@ export function createAsymmetricKey(key: PrivateKeyInput | PublicKeyInput): Asym
       break;
     case 'sec1':
       pemTitle = 'EC PRIVATE KEY';
+      break;
+    case 'x509':
+      pemTitle = 'CERTIFICATE';
       break;
     }
   }
@@ -189,6 +198,16 @@ export function createAsymmetricKey(key: PrivateKeyInput | PublicKeyInput): Asym
         return createAsymmetricKeyWithType('EC PRIVATE KEY', asn);
       }
       if (key.type === 'sec1') {
+        break;
+      }
+    }
+
+    if (!key.type || (key.type === 'x509')) {
+      const result = asn1js.compareSchema(asn.result, asn.result, Certificate.schema());
+      if (result.verified) {
+        return createAsymmetricKeyWithType('CERTIFICATE', asn);
+      }
+      if (key.type === 'x509') {
         break;
       }
     }

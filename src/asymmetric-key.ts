@@ -8,6 +8,7 @@ import DigestInfo from 'pkijs/build/DigestInfo';
 import ECPublicKey from 'pkijs/build/ECPublicKey';
 import RSAPrivateKey from 'pkijs/build/RSAPrivateKey';
 import RSAPublicKey from 'pkijs/build/RSAPublicKey';
+import Certificate from 'pkijs/build/Certificate';
 import ECPrivateKey from './impl/asn/ECPrivateKey';
 import PrivateKeyInfo from './impl/asn/PrivateKeyInfo';
 import PublicKeyInfo from './impl/asn/PublicKeyInfo';
@@ -870,12 +871,13 @@ export function createAsymmetricKeyFromNode(key: crypto.KeyObject): AsymmetricKe
   throw new Error('Not supported key');
 }
 
-export type PEMTitle = 'PRIVATE KEY' | 'PUBLIC KEY' | 'EC PRIVATE KEY' | 'RSA PRIVATE KEY' | 'RSA PUBLIC KEY';
+export type PEMTitle = 'PRIVATE KEY' | 'PUBLIC KEY' | 'EC PRIVATE KEY' | 'RSA PRIVATE KEY' | 'RSA PUBLIC KEY' | 'CERTIFICATE';
 export function createAsymmetricKeyFromAsn(pemTitle: 'PRIVATE KEY', asn: PrivateKeyInfo): AsymmetricKeyObject;
 export function createAsymmetricKeyFromAsn(pemTitle: 'PUBLIC KEY', asn: PublicKeyInfo): AsymmetricKeyObject;
 export function createAsymmetricKeyFromAsn(pemTitle: 'EC PRIVATE KEY', asn: ECPrivateKey): AsymmetricKeyObject;
 export function createAsymmetricKeyFromAsn(pemTitle: 'RSA PRIVATE KEY', asn: RSAPrivateKey): AsymmetricKeyObject;
 export function createAsymmetricKeyFromAsn(pemTitle: 'RSA PUBLIC KEY', asn: RSAPublicKey): AsymmetricKeyObject;
+export function createAsymmetricKeyFromAsn(pemTitle: 'CERTIFICATE', asn: Certificate): AsymmetricKeyObject;
 export function createAsymmetricKeyFromAsn(pemTitle: PEMTitle, asn: any): AsymmetricKeyObject {
   if (pemTitle === 'PRIVATE KEY') {
     return createAsymmetricKeyFromPrivateKeyInfo(asn as PrivateKeyInfo);
@@ -911,6 +913,16 @@ export function createAsymmetricKeyFromAsn(pemTitle: PEMTitle, asn: any): Asymme
     }, true);
   } else if (pemTitle === 'PUBLIC KEY') {
     const publicKeyInfo = asn as PublicKeyInfo;
+    const algorithmIdentifier = publicKeyInfo.algorithm as AlgorithmIdentifier;
+    return fromKeyObjectAndOid(
+      algorithmIdentifier.algorithmId,
+      'public',
+      algorithmIdentifier.algorithmParams,
+      publicKeyInfo.subjectPublicKey
+    );
+  } else if (pemTitle === 'CERTIFICATE') {
+    const certificate = asn as Certificate;
+    const publicKeyInfo = certificate.subjectPublicKeyInfo;
     const algorithmIdentifier = publicKeyInfo.algorithm as AlgorithmIdentifier;
     return fromKeyObjectAndOid(
       algorithmIdentifier.algorithmId,
