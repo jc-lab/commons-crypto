@@ -3,11 +3,17 @@ import * as elliptic from 'elliptic';
 import * as hashjs from 'hash.js';
 import * as asn1js from 'asn1js';
 import BN from 'bn.js';
+//@ts-ignore
 import AlgorithmIdentifier from 'pkijs/build/AlgorithmIdentifier';
+//@ts-ignore
 import DigestInfo from 'pkijs/build/DigestInfo';
+//@ts-ignore
 import ECPublicKey from 'pkijs/build/ECPublicKey';
+//@ts-ignore
 import RSAPrivateKey from 'pkijs/build/RSAPrivateKey';
+//@ts-ignore
 import RSAPublicKey from 'pkijs/build/RSAPublicKey';
+//@ts-ignore
 import Certificate from 'pkijs/build/Certificate';
 import ECPrivateKey from './impl/asn/ECPrivateKey';
 import PrivateKeyInfo from './impl/asn/PrivateKeyInfo';
