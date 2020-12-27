@@ -1,11 +1,12 @@
 import chai from 'chai';
-const expect = chai.expect;
-const assert = chai.assert;
-const should = chai.should();
-
 import * as asn1js from 'asn1js';
 
 import * as cc from '../../src/index';
+import {AsymmetricAlgorithmType, createAsymmetricAlgorithm} from '../../src/index';
+
+const expect = chai.expect;
+const assert = chai.assert;
+const should = chai.should();
 
 const USE_CONSOLE_OUTPUT = process.env.USE_CONSOLE_OUTPUT || false;
 
@@ -223,8 +224,54 @@ P5NGJ+wzyyYhWua2GYQOtvvY1ahojkT71lry78xu0bIyLVBRIfCpyA==
     expect(importedKey.equals(priKeyB)).to.equal(false);
   });
 
-  it('Key generate', function () {
+  it('Key generate 1', function () {
     const algorithm = priKeyA.getKeyAlgorithm();
+
+    const { privateKey, publicKey } = algorithm.generateKeyPair();
+
+    const privateKeyPem = privateKey.export({
+      type: 'specific',
+      format: 'pem'
+    });
+    const publicKeyPem = publicKey.export({
+      type: 'specific',
+      format: 'pem'
+    });
+
+    expect(privateKeyPem.startsWith('-----BEGIN EC PRIVATE KEY-----')).to.equal(true);
+    expect(publicKeyPem.startsWith('-----BEGIN PUBLIC KEY-----')).to.equal(true);
+
+    if(USE_CONSOLE_OUTPUT) {
+      console.log('generated private key :', privateKeyPem);
+      console.log('generated public key :', publicKeyPem);
+    }
+  });
+
+  it('Key generate by name', function () {
+    const algorithm = createAsymmetricAlgorithm(AsymmetricAlgorithmType.ec, 'p256');
+
+    const { privateKey, publicKey } = algorithm.generateKeyPair();
+
+    const privateKeyPem = privateKey.export({
+      type: 'specific',
+      format: 'pem'
+    });
+    const publicKeyPem = publicKey.export({
+      type: 'specific',
+      format: 'pem'
+    });
+
+    expect(privateKeyPem.startsWith('-----BEGIN EC PRIVATE KEY-----')).to.equal(true);
+    expect(publicKeyPem.startsWith('-----BEGIN PUBLIC KEY-----')).to.equal(true);
+
+    if(USE_CONSOLE_OUTPUT) {
+      console.log('generated private key :', privateKeyPem);
+      console.log('generated public key :', publicKeyPem);
+    }
+  });
+
+  it('Key generate by oid', function () {
+    const algorithm = createAsymmetricAlgorithm(AsymmetricAlgorithmType.ec, '1.2.840.10045.3.1.7');
 
     const { privateKey, publicKey } = algorithm.generateKeyPair();
 

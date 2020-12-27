@@ -12,6 +12,9 @@ export interface CurveOptions extends elliptic.curves.PresetCurve.Options {
   d?: string;
   h?: string;
   byteLength: number;
+  signable: boolean;
+  keyAgreementable: boolean;
+  cryptable: boolean;
 }
 
 export interface CompiledCurve {
@@ -109,7 +112,10 @@ defineCurve({
     '188da80e b03090f6 7cbf20eb 43a18800 f4ff0afd 82ff1012',
     '07192b95 ffc8da78 631011ed 6b24cdd5 73f977a1 1e794811'
   ],
-  byteLength: 24
+  byteLength: 24,
+  signable: true,
+  keyAgreementable: true,
+  cryptable: false
 });
 
 defineCurve({
@@ -128,7 +134,10 @@ defineCurve({
     'b70e0cbd 6bb4bf7f 321390b9 4a03c1d3 56c21122 343280d6 115c1d21',
     'bd376388 b5f723fb 4c22dfe6 cd4375a0 5a074764 44d58199 85007e34'
   ],
-  byteLength: 28
+  byteLength: 28,
+  signable: true,
+  keyAgreementable: true,
+  cryptable: false
 });
 
 defineCurve({
@@ -147,7 +156,10 @@ defineCurve({
     '6b17d1f2 e12c4247 f8bce6e5 63a440f2 77037d81 2deb33a0 f4a13945 d898c296',
     '4fe342e2 fe1a7f9b 8ee7eb4a 7c0f9e16 2bce3357 6b315ece cbb64068 37bf51f5'
   ],
-  byteLength: 32
+  byteLength: 32,
+  signable: true,
+  keyAgreementable: true,
+  cryptable: false
 });
 
 defineCurve({
@@ -172,7 +184,10 @@ defineCurve({
     '3617de4a 96262c6f 5d9e98bf 9292dc29 f8f41dbd 289a147c e9da3113 b5f0b8c0 ' +
     '0a60b1ce 1d7e819d 7a431d7c 90ea0e5f'
   ],
-  byteLength: 48
+  byteLength: 48,
+  signable: true,
+  keyAgreementable: true,
+  cryptable: false
 });
 
 defineCurve({
@@ -203,7 +218,10 @@ defineCurve({
     '579b4468 17afbd17 273e662c 97ee7299 5ef42640 c550b901 ' +
     '3fad0761 353c7086 a272c240 88be9476 9fd16650'
   ],
-  byteLength: 66
+  byteLength: 66,
+  signable: true,
+  keyAgreementable: true,
+  cryptable: false
 });
 
 defineCurve({
@@ -221,7 +239,10 @@ defineCurve({
   g: [
     '9'
   ],
-  byteLength: 32
+  byteLength: 32,
+  signable: false,
+  keyAgreementable: true,
+  cryptable: false
 });
 
 defineCurve({
@@ -245,7 +266,10 @@ defineCurve({
     // 4/5
     '6666666666666666666666666666666666666666666666666666666666666658'
   ],
-  byteLength: 32
+  byteLength: 32,
+  signable: true,
+  keyAgreementable: false,
+  cryptable: false
 });
 
 import pre from 'elliptic/lib/elliptic/precomputed/secp256k1';
@@ -284,7 +308,10 @@ defineCurve({
     pre
   ],
 
-  byteLength: 32
+  byteLength: 32,
+  signable: true,
+  keyAgreementable: true,
+  cryptable: false
 });
 
 export function getCurveByName(name: string): Curve | undefined {

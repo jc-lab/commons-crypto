@@ -107,7 +107,10 @@ export function fromCurve(options: KeyParams<ECParametersChoice | ArrayBuffer, A
       hash: hashjs.sha256, //TODO: Auto find fitted hash algorithm
       gRed: false,
       g: g,
-      byteLength: 0
+      byteLength: 0,
+      signable: options.signable,
+      keyAgreementable: options.keyAgreementable,
+      cryptable: options.cryptable
     };
     ec = {
       preset: new elliptic.curves.PresetCurve(curveOptions),
@@ -120,7 +123,7 @@ export function fromCurve(options: KeyParams<ECParametersChoice | ArrayBuffer, A
     throw new Error('Not supported Key: ' + (namedOid ? namedOid : 'null'));
   }
   const algo = new EllipticAlgorithm(
-    options.type, options.signable, options.keyAgreementable, options.cryptable,
+    options.type,
     new elliptic.ec(ec.preset), ec.options,
     new asn1js.ObjectIdentifier({
       value: options.curveOid

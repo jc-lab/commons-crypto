@@ -29,15 +29,15 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
   private _curveOptions: CurveOptions;
 
   constructor(
-    type: AsymmetricAlgorithmType, signable: boolean, keyAgreementable: boolean, cryptable: boolean,
+    type: AsymmetricAlgorithmType,
     ec: elliptic.ec, curveOptions: CurveOptions,
-    algorithmOid: asn1js.ObjectIdentifier,
+    algorithmOid: asn1js.ObjectIdentifier | string,
     algorithmParams: ECParametersChoice
   ) {
-    super(type, signable, keyAgreementable, cryptable);
+    super(type, curveOptions.signable, curveOptions.keyAgreementable, curveOptions.cryptable);
     this._ec = ec;
     this._curveOptions = curveOptions;
-    this._algorithmOid = algorithmOid;
+    this._algorithmOid = (typeof algorithmOid === 'string') ? new asn1js.ObjectIdentifier({ value: algorithmOid }) : algorithmOid;
     this._algorithmParams = algorithmParams;
     this._namedCurveOid = algorithmParams.namedCurve && new asn1js.ObjectIdentifier({ value: algorithmParams.namedCurve }) || null;
   }

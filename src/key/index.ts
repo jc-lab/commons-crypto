@@ -9,6 +9,7 @@ import {PublicKeyInfo} from './impl/asn/PublicKeyInfo';
 export * from './interfaces';
 export * from './asymmetric-key';
 export * from './core';
+export * from './algorithms';
 
 import * as utils from '../utils';
 
