@@ -9,6 +9,7 @@
     "postinstall": "npm dedupe && node fix_modules.js",
     "install": "npm dedupe && node fix_modules.js",
     "test:lint": "eslint --ext \".js,.ts\" ./src",
+    "fix:lint": "eslint --fix --ext \".js,.ts\" ./src",
     "test:mocha": "concurrently \"npm run test:mocha:node\" \"npm run test:mocha:browser\"",
     "test:mocha:node": "cross-env TS_NODE_PROJECT=tsconfig.test.json mocha -r ts-node/register --recursive test/**/*.ts",
     "test:mocha:browser": "mochapack --webpack-config webpack.browser-config.js -r test/browser/browser-helper.js --recursive test/browser/**/*.ts",
