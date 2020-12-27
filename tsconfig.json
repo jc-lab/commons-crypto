@@ -3,6 +3,7 @@
     "target": "es6",
     "module": "commonjs",
     "lib": [
+      "es2015",
       "dom"
     ],
     "declaration": true,
@@ -10,7 +11,8 @@
     "outDir": "./lib/",
     "strict": true,
     "noImplicitAny": false,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "experimentalDecorators": true
   },
   "include": [
     "src/**/*"
