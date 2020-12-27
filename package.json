@@ -13,7 +13,6 @@
     "test:mocha": "concurrently \"npm run test:mocha:node\" \"npm run test:mocha:browser\"",
     "test:mocha:node": "cross-env TS_NODE_PROJECT=tsconfig.test.json mocha -r ts-node/register --recursive test/**/*.ts",
     "test:mocha:browser": "mochapack --webpack-config webpack.browser-config.js -r test/browser/browser-helper.js --recursive test/browser/**/*.ts",
-    "tttt": "mochapack --webpack-config webpack.browser-config.js -r test/browser/browser-helper.js test/browser/a.test.ts",
     "build": "npm run build:node && npm run build:browser",
     "build:node": "tsc",
     "build:browser": "webpack --config webpack.browser-config.js",
