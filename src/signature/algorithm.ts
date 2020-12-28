@@ -25,35 +25,35 @@ export function defineSignature(nameOptions: SignatureNameOptions, factoryOption
 
 defineSignature({
   oid: '1.2.840.10045.4.1',
-  names: ['eddsa-with-sha1']
+  names: ['ecdsa-with-sha1']
 }, {
   digestOid: '1.3.14.3.2.26',
   supplier: (digestOid, key, opts) => new SignatureImpl(digestOid, key, opts)
 });
 defineSignature({
   oid: '1.2.840.10045.4.3.2',
-  names: ['eddsa-with-sha256']
+  names: ['ecdsa-with-sha256']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.1',
   supplier: (digestOid, key, opts) => new SignatureImpl(digestOid, key, opts)
 });
 defineSignature({
   oid: '1.2.840.10045.4.3.3',
-  names: ['eddsa-with-sha384']
+  names: ['ecdsa-with-sha384']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.2',
   supplier: (digestOid, key, opts) => new SignatureImpl(digestOid, key, opts)
 });
 defineSignature({
   oid: '1.2.840.10045.4.3.4',
-  names: ['eddsa-with-sha512']
+  names: ['ecdsa-with-sha512']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.3',
   supplier: (digestOid, key, opts) => new SignatureImpl(digestOid, key, opts)
 });
 defineSignature({
   oid: '1.2.840.10045.4.3.1',
-  names: ['eddsa-with-sha224']
+  names: ['ecdsa-with-sha224']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.4',
   supplier: (digestOid, key, opts) => new SignatureImpl(digestOid, key, opts)
