@@ -1,6 +1,3 @@
-import * as asn1js from 'asn1js';
-import PkijsCertificate from 'pkijs/build/Certificate';
-
 const chai = require('chai');
 const expect = chai.expect;
 const assert = chai.assert;
