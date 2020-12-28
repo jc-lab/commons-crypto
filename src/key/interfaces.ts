@@ -67,9 +67,10 @@ export abstract class AsymmetricKeyAlgorithm {
   protected _signable: boolean;
   protected _keyAgreementable: boolean;
   protected _cryptable: boolean;
+  protected _algorithmOid: string;
 
   protected constructor(
-    type: AsymmetricAlgorithmType, signable: boolean, keyAgreementable: boolean, cryptable: boolean
+    type: AsymmetricAlgorithmType, signable: boolean, keyAgreementable: boolean, cryptable: boolean, algorithmOid: string
   ) {
     Object.defineProperty(this, S_AsymmetricKeyAlgorithm, {
       get(): any {
@@ -81,6 +82,7 @@ export abstract class AsymmetricKeyAlgorithm {
     this._signable = signable;
     this._keyAgreementable = keyAgreementable;
     this._cryptable = cryptable;
+    this._algorithmOid = algorithmOid;
   }
 
   public static isAsymmetricKeyAlgorithm(o: any) {
@@ -89,6 +91,10 @@ export abstract class AsymmetricKeyAlgorithm {
 
   public get type(): AsymmetricAlgorithmType {
     return this._type;
+  }
+
+  public get algorithmOid(): string {
+    return this._algorithmOid;
   }
 
   public get signable(): boolean {

@@ -22,8 +22,7 @@ import {EllipticKeyObject} from '../asym-key/elliptic';
 import { createAsymmetricKeyFromPrivateKeyInfo, fromKeyObjectAndOid } from '../key-parse';
 
 export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
-  private _algorithmOid: asn1js.ObjectIdentifier;
-  private _namedCurveOid: asn1js.ObjectIdentifier | null = null;
+  private _namedCurveOid: string | null = null;
   private _algorithmParams: ECParametersChoice;
   private _ec: elliptic.ec;
   private _curveOptions: CurveOptions;
@@ -31,15 +30,14 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
   constructor(
     type: AsymmetricAlgorithmType,
     ec: elliptic.ec, curveOptions: CurveOptions,
-    algorithmOid: asn1js.ObjectIdentifier | string,
+    algorithmOid: string,
     algorithmParams: ECParametersChoice
   ) {
-    super(type, curveOptions.signable, curveOptions.keyAgreementable, curveOptions.cryptable);
+    super(type, curveOptions.signable, curveOptions.keyAgreementable, curveOptions.cryptable, algorithmOid);
     this._ec = ec;
     this._curveOptions = curveOptions;
-    this._algorithmOid = (typeof algorithmOid === 'string') ? new asn1js.ObjectIdentifier({ value: algorithmOid }) : algorithmOid;
     this._algorithmParams = algorithmParams;
-    this._namedCurveOid = algorithmParams.namedCurve && new asn1js.ObjectIdentifier({ value: algorithmParams.namedCurve }) || null;
+    this._namedCurveOid = algorithmParams.namedCurve;
   }
 
   public isShortCurve() {
@@ -157,7 +155,7 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
       const privateKeyInfo = new PrivateKeyInfo({
         version: 0,
         privateKeyAlgorithm: new AlgorithmIdentifier({
-          algorithm: this._algorithmOid.valueBlock.toString(),
+          algorithm: this._algorithmOid,
           parameters: AsnSerializer.serialize(this._algorithmParams)
         }),
         privateKey: new OctetString(AsnSerializer.serialize(ecKey))
@@ -181,7 +179,7 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
       const ecPublicKey = this._exportECPublicKey(_key);
       const asnPublicKey = new PublicKeyInfo({
         algorithm: new AlgorithmIdentifier({
-          algorithm: this._algorithmOid.valueBlock.toString(),
+          algorithm: this._algorithmOid,
           parameters: AsnSerializer.serialize(this._algorithmParams)
         }),
         subjectPublicKey: ecPublicKey.toBitStream()

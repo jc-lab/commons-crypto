@@ -77,7 +77,11 @@ export class EllipticKeyObject extends AsymmetricKeyObject {
   }
 }
 
-export function fromCurve(options: KeyParams<ECParametersChoice | ArrayBuffer, ArrayBuffer>): EllipticKeyObject {
+export interface CurveKeyParams extends KeyParams<ECParametersChoice | ArrayBuffer, ArrayBuffer> {
+  algorithmOid: string;
+}
+
+export function fromCurve(options: CurveKeyParams): EllipticKeyObject {
   let ec: Curve | undefined;
   let namedOid: string | undefined = undefined;
   // asn1js.ObjectIdentifier | null = null;
@@ -125,9 +129,7 @@ export function fromCurve(options: KeyParams<ECParametersChoice | ArrayBuffer, A
   const algo = new EllipticAlgorithm(
     options.type,
     new elliptic.ec(ec.preset), ec.options,
-    new asn1js.ObjectIdentifier({
-      value: options.curveOid
-    }),
+    options.algorithmOid,
     ecParameterChoice
   );
   return EllipticKeyObject.fromBinary(algo, options.keyType, options.asn1KeyObject);

@@ -32,7 +32,7 @@ export function fromKeyObjectAndOid(oid: string, keyType: KeyType, asn1KeyParams
   case '1.2.840.10045.2.1':
     // Curve
     return fromCurve({
-      curveOid: oid,
+      algorithmOid: oid,
       type: AsymmetricAlgorithmType.ec,
       keyType: keyType,
       asn1KeyParams: asn1KeyParams as ArrayBuffer,
@@ -44,7 +44,7 @@ export function fromKeyObjectAndOid(oid: string, keyType: KeyType, asn1KeyParams
   case '1.3.101.110':
     // X25519
     return fromCurve({
-      curveOid: oid,
+      algorithmOid: oid,
       type: AsymmetricAlgorithmType.x25519,
       keyType: keyType,
       asn1KeyParams: asn1KeyParams as ArrayBuffer,
@@ -56,7 +56,7 @@ export function fromKeyObjectAndOid(oid: string, keyType: KeyType, asn1KeyParams
   case '1.3.101.111':
     // X448
     return fromCurve({
-      curveOid: oid,
+      algorithmOid: oid,
       type: AsymmetricAlgorithmType.x448,
       keyType: keyType,
       asn1KeyParams: asn1KeyParams as ArrayBuffer,
@@ -68,7 +68,7 @@ export function fromKeyObjectAndOid(oid: string, keyType: KeyType, asn1KeyParams
   case '1.3.101.112':
     // EdDSA25519
     return fromCurve({
-      curveOid: oid,
+      algorithmOid: oid,
       type: AsymmetricAlgorithmType.edwards,
       keyType: keyType,
       asn1KeyParams: asn1KeyParams as ArrayBuffer,
@@ -80,7 +80,7 @@ export function fromKeyObjectAndOid(oid: string, keyType: KeyType, asn1KeyParams
   case '1.3.101.113':
     // EdDSA448
     return fromCurve({
-      curveOid: oid,
+      algorithmOid: oid,
       type: AsymmetricAlgorithmType.edwards,
       keyType: keyType,
       asn1KeyParams: asn1KeyParams as ArrayBuffer,

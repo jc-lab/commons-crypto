@@ -77,7 +77,7 @@ export function createAsymmetricKeyFromAsn(pemTitle: PEMTitle, asn: any): Asymme
   } else if (pemTitle === 'EC PRIVATE KEY') {
     const ecPrivateKey = asn as ECPrivateKey;
     return fromCurve({
-      curveOid: '1.2.840.10045.2.1',
+      algorithmOid: '1.2.840.10045.2.1',
       type: AsymmetricAlgorithmType.ec,
       keyType: 'private',
       asn1KeyParams: ecPrivateKey.parameters as ECParametersChoice,

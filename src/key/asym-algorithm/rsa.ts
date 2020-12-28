@@ -26,7 +26,7 @@ export class RSAKeyAlgorithm extends AsymmetricKeyAlgorithm {
   private readonly _keySize: number;
 
   constructor(type: AsymmetricAlgorithmType, signable: boolean, keyAgreementable: boolean, cryptable: boolean, keySize: number) {
-    super(type, signable, keyAgreementable, cryptable);
+    super(type, signable, keyAgreementable, cryptable, '1.2.840.113549.1.1.1');
     this._keySize = keySize;
   }
 
