@@ -3,11 +3,9 @@ import {
 } from './interfaces';
 
 export type KeyType = 'private' | 'public';
-export interface KeyParams<TKeyParams, TKeyObject> {
-  keyType: KeyType;
+export interface KeyParams<TKeyParams> {
   type: AsymmetricAlgorithmType;
   asn1KeyParams: TKeyParams;
-  asn1KeyObject: TKeyObject;
   signable: boolean;
   keyAgreementable: boolean;
   cryptable: boolean;

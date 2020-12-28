@@ -3,7 +3,7 @@ import {AsymmetricAlgorithmType, AsymmetricKeyObject} from './interfaces';
 import {KeyType} from './intl';
 import {ParametersType} from '@peculiar/asn1-x509';
 import {fromRSAKey} from './asym-key/rsa';
-import {fromCurve} from './asym-key/elliptic';
+import {fromCurve} from './asym-algorithm/elliptic';
 
 export function fromKeyObjectAndOid(oid: string, keyType: KeyType, asn1KeyParams: ParametersType | undefined, asn1KeyObject: ArrayBuffer): AsymmetricKeyObject {
   switch (oid) {
@@ -34,61 +34,51 @@ export function fromKeyObjectAndOid(oid: string, keyType: KeyType, asn1KeyParams
     return fromCurve({
       algorithmOid: oid,
       type: AsymmetricAlgorithmType.ec,
-      keyType: keyType,
       asn1KeyParams: asn1KeyParams as ArrayBuffer,
-      asn1KeyObject: asn1KeyObject,
       signable: true,
       keyAgreementable: true,
       cryptable: false
-    });
+    }).asnKeyObjectToKey(keyType, asn1KeyObject);
   case '1.3.101.110':
     // X25519
     return fromCurve({
       algorithmOid: oid,
       type: AsymmetricAlgorithmType.x25519,
-      keyType: keyType,
-      asn1KeyParams: asn1KeyParams as ArrayBuffer,
-      asn1KeyObject: asn1KeyObject,
+      asn1KeyParams: null,
       signable: false,
       keyAgreementable: true,
       cryptable: false
-    });
+    }, true).asnKeyObjectToKey(keyType, asn1KeyObject);
   case '1.3.101.111':
     // X448
     return fromCurve({
       algorithmOid: oid,
       type: AsymmetricAlgorithmType.x448,
-      keyType: keyType,
-      asn1KeyParams: asn1KeyParams as ArrayBuffer,
-      asn1KeyObject: asn1KeyObject,
+      asn1KeyParams: null,
       signable: false,
       keyAgreementable: true,
       cryptable: false
-    });
+    }, true).asnKeyObjectToKey(keyType, asn1KeyObject);
   case '1.3.101.112':
     // EdDSA25519
     return fromCurve({
       algorithmOid: oid,
       type: AsymmetricAlgorithmType.edwards,
-      keyType: keyType,
-      asn1KeyParams: asn1KeyParams as ArrayBuffer,
-      asn1KeyObject: asn1KeyObject,
+      asn1KeyParams: null,
       signable: true,
       keyAgreementable: false,
       cryptable: false
-    });
+    }, true).asnKeyObjectToKey(keyType, asn1KeyObject);
   case '1.3.101.113':
     // EdDSA448
     return fromCurve({
       algorithmOid: oid,
       type: AsymmetricAlgorithmType.edwards,
-      keyType: keyType,
-      asn1KeyParams: asn1KeyParams as ArrayBuffer,
-      asn1KeyObject: asn1KeyObject,
+      asn1KeyParams: null,
       signable: true,
       keyAgreementable: false,
       cryptable: false
-    });
+    }, true).asnKeyObjectToKey(keyType, asn1KeyObject);
   }
   throw new Error('Not supported key');
 }

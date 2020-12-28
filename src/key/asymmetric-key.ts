@@ -27,7 +27,7 @@ import {
 
 import {ECParametersChoice} from './impl/asn/ECParameters';
 import {fromRSAKey} from './asym-key/rsa';
-import {fromCurve} from './asym-key/elliptic';
+import {fromCurve} from './asym-algorithm/elliptic';
 
 import { createAsymmetricKeyFromPrivateKeyInfo, fromKeyObjectAndOid } from './key-parse';
 
@@ -79,13 +79,11 @@ export function createAsymmetricKeyFromAsn(pemTitle: PEMTitle, asn: any): Asymme
     return fromCurve({
       algorithmOid: '1.2.840.10045.2.1',
       type: AsymmetricAlgorithmType.ec,
-      keyType: 'private',
       asn1KeyParams: ecPrivateKey.parameters as ECParametersChoice,
-      asn1KeyObject: ecPrivateKey.privateKey,
       signable: true,
       keyAgreementable: true,
       cryptable: false
-    });
+    }).asnKeyObjectToKey('private', ecPrivateKey.privateKey);
   } else if (pemTitle === 'RSA PRIVATE KEY') {
     const rsaPrivateKey = asn as RSAPrivateKey;
     return fromRSAKey({
@@ -131,3 +129,7 @@ export function createAsymmetricKeyFromAsn(pemTitle: PEMTitle, asn: any): Asymme
   throw new Error('Unknown error');
 }
 
+export { RSAKeyAlgorithm } from './asym-algorithm/rsa';
+export { RSAKeyObject } from './asym-key/rsa';
+export { EllipticAlgorithm } from './asym-algorithm/elliptic';
+export { EllipticKeyObject } from './asym-key/elliptic';

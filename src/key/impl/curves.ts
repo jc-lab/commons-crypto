@@ -224,16 +224,43 @@ defineCurve({
   cryptable: false
 });
 
+// curve25519
+defineCurve({
+  oid: '1.3.6.1.4.1.3029.1.5.1',
+  names: ['curve25519', 'curve25519-weier']
+}, {
+  type: 'short',
+  prime: 'p25519',
+  p: '7fffffffffffffff ffffffffffffffff ffffffffffffffff ffffffffffffffed',
+  a: '2aaaaaaaaaaaaaaa aaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaa aaaaaa984914a144',
+  b: '7b425ed097b425ed 097b425ed097b425 ed097b425ed097b4 260b5e9c7710c864',
+  n: '1000000000000000 0000000000000000 14def9dea2f79cd6 5812631a5cf5d3ed',
+
+  hash: hash.sha256,
+  gRed: false,
+  g: [
+    '2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad245a',
+    '20ae19a1b8a086b4e01edd2c7748d14c923d4d7e6d7c61b229e9c5a27eced3d9'
+  ],
+  byteLength: 32,
+  signable: false,
+  keyAgreementable: true,
+  cryptable: false
+});
+
+// curve25519
 defineCurve({
   oid: '1.3.101.110',
-  names: ['curve25519', 'x25519']
+  names: ['x25519']
 }, {
   type: 'mont',
   prime: 'p25519',
+
   p: '7fffffffffffffff ffffffffffffffff ffffffffffffffff ffffffffffffffed',
   a: '76d06',
   b: '1',
   n: '1000000000000000 0000000000000000 14def9dea2f79cd6 5812631a5cf5d3ed',
+
   hash: hash.sha256,
   gRed: false,
   g: [

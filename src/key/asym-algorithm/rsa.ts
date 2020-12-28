@@ -1,5 +1,4 @@
 import * as asn1js from 'asn1js';
-import BN from 'bn.js';
 import {AsnParser, AsnSerializer, OctetString} from '@peculiar/asn1-schema';
 import {PrivateKeyInfo} from '@peculiar/asn1-pkcs8';
 import {DigestInfo, RSAPrivateKey, RSAPublicKey} from '@peculiar/asn1-rsa';
@@ -14,13 +13,12 @@ import {
 import * as rdsaSignature from '../impl/rdsa-signature';
 import {arrayBufferToBuffer, bufferToArrayBuffer} from '../../utils';
 import {PublicKeyInfo} from '../impl/asn/PublicKeyInfo';
-import {RSAKeyObject} from '../asym-key/rsa';
+import {fromRSAKey, RSAKeyObject} from '../asym-key/rsa';
 
 import {
   publicEncrypt,
   privateDecrypt
 } from '../impl/public-encrypt';
-import {KeyParams} from '../intl';
 
 export class RSAKeyAlgorithm extends AsymmetricKeyAlgorithm {
   private readonly _keySize: number;
@@ -202,40 +200,4 @@ export class RSAKeyAlgorithm extends AsymmetricKeyAlgorithm {
     }
     throw new Error('Unknown error');
   }
-}
-
-
-function fromRSAKey(options: KeyParams<ParametersType | undefined, ArrayBuffer>): AsymmetricKeyObject;
-function fromRSAKey(options: KeyParams<ParametersType | undefined, RSAPrivateKey | RSAPublicKey>, decoded: true): AsymmetricKeyObject;
-function fromRSAKey(options: KeyParams<ParametersType | undefined, any>, decoded?: boolean): AsymmetricKeyObject {
-  const asn = decoded ? null : asn1js.fromBER(options.asn1KeyObject);
-  let bnPrivateKey;
-  let bnPublicKey;
-  if (options.keyType === 'private') {
-    const asnKey: RSAPrivateKey = asn ? AsnParser.fromASN(asn.result, RSAPrivateKey) : options.asn1KeyObject;
-    bnPrivateKey = {
-      privateExponent: new BN(arrayBufferToBuffer(asnKey.privateExponent)),
-      publicExponent: new BN(arrayBufferToBuffer(asnKey.publicExponent)),
-      modulus: new BN(arrayBufferToBuffer(asnKey.modulus)),
-      prime1: new BN(arrayBufferToBuffer(asnKey.prime1)),
-      prime2: new BN(arrayBufferToBuffer(asnKey.prime2)),
-      exponent1: new BN(arrayBufferToBuffer(asnKey.exponent1)),
-      exponent2: new BN(arrayBufferToBuffer(asnKey.exponent2)),
-      coefficient: new BN(arrayBufferToBuffer(asnKey.coefficient))
-    };
-    bnPublicKey = {
-      publicExponent: new BN(bnPrivateKey.publicExponent),
-      modulus: new BN(bnPrivateKey.modulus)
-    };
-  } else {
-    const asnPublicKey: RSAPublicKey = asn ? AsnParser.fromASN(asn.result, RSAPublicKey) : options.asn1KeyObject;
-    bnPublicKey = {
-      publicExponent: new BN(arrayBufferToBuffer(asnPublicKey.publicExponent)),
-      modulus: new BN(arrayBufferToBuffer(asnPublicKey.modulus))
-    };
-  }
-  const algo: RSAKeyAlgorithm = new RSAKeyAlgorithm(
-    AsymmetricAlgorithmType.rsa, true, true, true, bnPublicKey.modulus.bitLength()
-  );
-  return new RSAKeyObject(algo, options, bnPrivateKey, bnPublicKey);
 }

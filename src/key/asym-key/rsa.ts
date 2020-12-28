@@ -5,7 +5,7 @@ import {ParametersType} from '@peculiar/asn1-x509';
 import {RSAPrivateKey, RSAPublicKey} from '@peculiar/asn1-rsa';
 import {AsymmetricAlgorithmType, AsymmetricKeyAlgorithm, AsymmetricKeyObject} from '../interfaces';
 import {arrayBufferToBuffer} from '../../utils';
-import {KeyParams} from '../intl';
+import {KeyParams, KeyType} from '../intl';
 import {RSAKeyAlgorithm} from '../asym-algorithm/rsa';
 
 export interface BNRSAPublicKey {
@@ -22,12 +22,17 @@ export interface BNRSAPrivateKey extends BNRSAPublicKey {
   exponent2:  BN;
 }
 
+export interface RSAKeyObjectParams<T> extends KeyParams<ParametersType | undefined> {
+  keyType: KeyType;
+  asn1KeyObject: T;
+}
+
 export class RSAKeyObject extends AsymmetricKeyObject {
   private _algo: RSAKeyAlgorithm;
   private _signPrivateKey: BNRSAPrivateKey | null;
   private _signPublicKey: BNRSAPublicKey;
 
-  constructor(algo: RSAKeyAlgorithm, options: KeyParams<any, any>, bnPrivateKey: BNRSAPrivateKey | null, bnPublicKey: BNRSAPublicKey) {
+  constructor(algo: RSAKeyAlgorithm, options: RSAKeyObjectParams<any>, bnPrivateKey: BNRSAPrivateKey | null, bnPublicKey: BNRSAPublicKey) {
     super();
 
     this._algo = algo;
@@ -87,9 +92,9 @@ export class RSAKeyObject extends AsymmetricKeyObject {
   }
 }
 
-export function fromRSAKey(options: KeyParams<ParametersType | undefined, ArrayBuffer>): AsymmetricKeyObject;
-export function fromRSAKey(options: KeyParams<ParametersType | undefined, RSAPrivateKey | RSAPublicKey>, decoded: true): AsymmetricKeyObject;
-export function fromRSAKey(options: KeyParams<ParametersType | undefined, any>, decoded?: boolean): AsymmetricKeyObject {
+export function fromRSAKey(options: RSAKeyObjectParams<ArrayBuffer>): AsymmetricKeyObject;
+export function fromRSAKey(options: RSAKeyObjectParams<RSAPrivateKey | RSAPublicKey>, decoded: true): AsymmetricKeyObject;
+export function fromRSAKey(options: RSAKeyObjectParams<any>, decoded?: boolean): AsymmetricKeyObject {
   const asn = decoded ? null : asn1js.fromBER(options.asn1KeyObject);
   let bnPrivateKey: BNRSAPrivateKey | null = null;
   let bnPublicKey: BNRSAPublicKey;
