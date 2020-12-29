@@ -4,20 +4,26 @@ import {Signature} from './interface';
 import {AsymmetricKeyObject} from '../key';
 
 export class SignatureImpl extends stream.Writable implements Signature {
-  private _digestOid: string;
+  public readonly signatureOid: string;
+  public readonly digestOid: string;
   private _hash: Hash;
   private _digest!: Buffer;
-  private _key: AsymmetricKeyObject;
+  private _key!: AsymmetricKeyObject;
 
-  constructor(digestOid: string, key: AsymmetricKeyObject, opts?: stream.WritableOptions) {
+  constructor(signatureOid: string, digestOid: string, opts?: stream.WritableOptions) {
     super(opts);
-    this._digestOid = digestOid;
+    this.signatureOid = signatureOid;
+    this.digestOid = digestOid;
     const hash = createHash(digestOid);
     if (!hash) {
       throw new Error(`${digestOid} algorithm not supported`);
     }
     this._hash = hash;
+  }
+
+  init(key: AsymmetricKeyObject): this {
     this._key = key;
+    return this;
   }
 
   _write(chunk: any, encoding: string, callback: (error?: (Error | null)) => void) {
@@ -32,10 +38,10 @@ export class SignatureImpl extends stream.Writable implements Signature {
   }
 
   sign(): Buffer {
-    return this._key.sign(this._digestOid, this._digest);
+    return this._key.sign(this.digestOid, this._digest);
   }
 
   verify(signature: Buffer): boolean {
-    return this._key.verify(this._digestOid, this._digest, signature);
+    return this._key.verify(this.digestOid, this._digest, signature);
   }
 }

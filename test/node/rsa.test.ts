@@ -219,18 +219,20 @@ PZnboU5qR8rYfq9D8wIDAQAB
   it('signature and verify: 1.2.840.113549.1.1.11', function () {
     const data = Buffer.from([0x1, 0x1, 0x1, 0x1]);
 
-    const signer = cc.createSignatureByAlgorithm('1.2.840.113549.1.1.11', priKey);
+    const signer = cc.createSignatureByAlgorithm('1.2.840.113549.1.1.11');
     if (!signer) {
       throw new Error('singer is null');
     }
+    signer.init(priKey);
     signer.write(data);
     signer.end();
     const signature = signer.sign();
 
-    const verifier = cc.createSignatureByAlgorithm('1.2.840.113549.1.1.11', pubKey);
+    const verifier = cc.createSignatureByAlgorithm('1.2.840.113549.1.1.11');
     if (!verifier) {
       throw new Error('verifier is null');
     }
+    verifier.init(pubKey);
     verifier.write(data);
     verifier.end();
 
