@@ -98,7 +98,7 @@ export function getHashByHmacAlgorithm(algorithm: string): Hash | undefined {
   return createHash(factory.digestOid);
 }
 
-export function createHmacByHash(macOid: string, hash: Hash): Hmac | undefined {
+export function createHmacByHash(macOid: string, hash: Hash): Hmac {
   return new HmacImpl(macOid, hash);
 }
 
