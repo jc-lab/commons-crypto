@@ -13,12 +13,17 @@ function xorWithByte(input: Buffer, value: number): Buffer {
 }
 
 export class HmacImpl extends stream.Transform implements Hmac {
+  public readonly macOid: string;
+  public readonly digestOid: string;
+
   private _baseHash: Hash;
   private _outputHash!: Hash;
   private _messageHash!: Hash;
 
-  constructor(hash: Hash) {
+  constructor(macOid: string, hash: Hash) {
     super();
+    this.macOid = macOid;
+    this.digestOid = hash.digestOid;
     this._baseHash = hash;
   }
 

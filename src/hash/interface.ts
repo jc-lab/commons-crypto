@@ -2,6 +2,8 @@ import * as stream from 'stream';
 import {BinaryLike} from '../interface';
 
 export interface Hash extends stream.Transform {
+  readonly digestOid: string;
+
   /**
    * block size bits
    */

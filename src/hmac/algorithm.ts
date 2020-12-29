@@ -6,10 +6,13 @@ export interface HmacNameOptions {
   oid: string;
   names: string[];
 }
-export type HmacSupplier = (hash: Hash) => Hmac;
+export type HmacSupplier = (macOid: string, hash: Hash) => Hmac;
 export interface HmacFactoryOptions {
   digestOid: string;
   supplier: HmacSupplier;
+}
+interface HmacFactoryEx extends HmacFactoryOptions {
+  macOid: string;
 }
 
 export interface HmacAlgorithmInfo extends HmacNameOptions {
@@ -17,16 +20,20 @@ export interface HmacAlgorithmInfo extends HmacNameOptions {
 }
 
 const algorithmList: HmacAlgorithmInfo[] = [];
-const oidMap: Record<string, HmacFactoryOptions> = {};
-const nameMap: Record<string, HmacFactoryOptions> = {};
+const oidMap: Record<string, HmacFactoryEx> = {};
+const nameMap: Record<string, HmacFactoryEx> = {};
 export function defineHmac(nameOptions: HmacNameOptions, factoryOptions: HmacFactoryOptions) {
   algorithmList.push({
     ...nameOptions,
     digestOid: factoryOptions.digestOid
   });
-  oidMap[nameOptions.oid] = factoryOptions;
-  nameOptions.names.forEach((v) => nameMap[v.toLowerCase()] = factoryOptions);
-  nameOptions.names.forEach((v) => nameMap[v.toLowerCase().replace(/-/g, '')] = factoryOptions);
+  const _factory: HmacFactoryEx = {
+    ...factoryOptions,
+    macOid: nameOptions.oid
+  };
+  oidMap[nameOptions.oid] = _factory;
+  nameOptions.names.forEach((v) => nameMap[v.toLowerCase()] = _factory);
+  nameOptions.names.forEach((v) => nameMap[v.toLowerCase().replace(/-/g, '')] = _factory);
 }
 
 defineHmac({
@@ -34,7 +41,7 @@ defineHmac({
   names: ['hmac-with-sha-1']
 }, {
   digestOid: '1.3.14.3.2.26',
-  supplier: (hash) => new HmacImpl(hash)
+  supplier: (macOid, hash) => new HmacImpl(macOid, hash)
 });
 
 defineHmac({
@@ -42,7 +49,7 @@ defineHmac({
   names: ['hmac-with-sha-224']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.4',
-  supplier: (hash) => new HmacImpl(hash)
+  supplier: (macOid, hash) => new HmacImpl(macOid, hash)
 });
 
 defineHmac({
@@ -50,7 +57,7 @@ defineHmac({
   names: ['hmac-with-sha-256']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.1',
-  supplier: (hash) => new HmacImpl(hash)
+  supplier: (macOid, hash) => new HmacImpl(macOid, hash)
 });
 
 defineHmac({
@@ -58,7 +65,7 @@ defineHmac({
   names: ['hmac-with-sha-384']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.2',
-  supplier: (hash) => new HmacImpl(hash)
+  supplier: (macOid, hash) => new HmacImpl(macOid, hash)
 });
 
 defineHmac({
@@ -66,7 +73,7 @@ defineHmac({
   names: ['hmac-with-sha-512']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.3',
-  supplier: (hash) => new HmacImpl(hash)
+  supplier: (macOid, hash) => new HmacImpl(macOid, hash)
 });
 
 export function createHmac(
@@ -80,7 +87,7 @@ export function createHmac(
   if (!hash) {
     return undefined;
   }
-  return factory.supplier(hash);
+  return factory.supplier(factory.macOid, hash);
 }
 
 export function getHashByHmacAlgorithm(algorithm: string): Hash | undefined {
@@ -91,8 +98,8 @@ export function getHashByHmacAlgorithm(algorithm: string): Hash | undefined {
   return createHash(factory.digestOid);
 }
 
-export function createHmacByHash(hash: Hash): Hmac | undefined {
-  return new HmacImpl(hash);
+export function createHmacByHash(macOid: string, hash: Hash): Hmac | undefined {
+  return new HmacImpl(macOid, hash);
 }
 
 export function getHmacAlgorithms(): readonly HmacAlgorithmInfo[] {
