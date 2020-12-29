@@ -1,4 +1,4 @@
-import createHash from 'create-hash';
+import * as createHash from 'create-hash';
 
 export function mgf(seed: Buffer, len: number): Buffer {
   let t = Buffer.alloc(0);

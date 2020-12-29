@@ -1,4 +1,4 @@
-import BN from 'bn.js';
+import * as BN from 'bn.js';
 import * as asn1js from 'asn1js';
 import {AsnParser} from '@peculiar/asn1-schema';
 import {ParametersType} from '@peculiar/asn1-x509';

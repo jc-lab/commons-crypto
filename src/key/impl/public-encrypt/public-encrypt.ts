@@ -1,8 +1,8 @@
-import randomBytes from 'randombytes';
-import createHash from 'create-hash';
-import crt from 'browserify-rsa';
+import * as randomBytes from 'randombytes';
+import * as createHash from 'create-hash';
+import * as crt from 'browserify-rsa';
 
-import BN from 'bn.js';
+import * as BN from 'bn.js';
 
 import {
   mgf

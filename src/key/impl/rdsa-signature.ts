@@ -1,8 +1,8 @@
 // much of this based on https://github.com/indutny/self-signed/blob/gh-pages/lib/rsa.js
-import createHmac from 'create-hmac';
-import crt from 'browserify-rsa';
+import * as createHmac from 'create-hmac';
+import * as crt from 'browserify-rsa';
 
-import BN from 'bn.js';
+import * as BN from 'bn.js';
 import {BNRSAPrivateKey, BNRSAPublicKey} from '../asym-key/rsa';
 
 function fromDER (sig: Buffer): { r: BN, s: BN } {

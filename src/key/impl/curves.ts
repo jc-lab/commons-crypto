@@ -1,6 +1,6 @@
 import * as hash from 'hash.js';
 import * as elliptic from 'elliptic';
-import BN from 'bn.js';
+import * as BN from 'bn.js';
 
 interface NameOptions {
   oid: string;

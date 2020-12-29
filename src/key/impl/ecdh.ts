@@ -1,5 +1,5 @@
 import * as elliptic from 'elliptic';
-import BN from 'bn.js';
+import * as BN from 'bn.js';
 
 function formatReturnValue (bn): Buffer;
 function formatReturnValue (bn, enc, len?): string;

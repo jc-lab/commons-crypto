@@ -1,4 +1,4 @@
-import chai from 'chai';
+import * as chai from 'chai';
 import * as asn1js from 'asn1js';
 
 import * as cc from '../../src/index';

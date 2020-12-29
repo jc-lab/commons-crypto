@@ -2,7 +2,7 @@ import {
   Signature
 } from './interface';
 import {SignatureImpl} from './stream';
-import stream from 'stream';
+import * as stream from 'stream';
 
 export interface SignatureNameOptions {
   oid: string;
