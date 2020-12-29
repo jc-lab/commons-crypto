@@ -6,7 +6,7 @@ export interface HmacNameOptions {
   oid: string;
   names: string[];
 }
-export type HmacSupplier = (hash: Hash, key: Buffer) => Hmac;
+export type HmacSupplier = (hash: Hash) => Hmac;
 export interface HmacFactoryOptions {
   digestOid: string;
   supplier: HmacSupplier;
@@ -34,7 +34,7 @@ defineHmac({
   names: ['hmac-with-sha-1']
 }, {
   digestOid: '1.3.14.3.2.26',
-  supplier: (hash, key) => new HmacImpl(hash, key)
+  supplier: (hash) => new HmacImpl(hash)
 });
 
 defineHmac({
@@ -42,7 +42,7 @@ defineHmac({
   names: ['hmac-with-sha-224']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.4',
-  supplier: (hash, key) => new HmacImpl(hash, key)
+  supplier: (hash) => new HmacImpl(hash)
 });
 
 defineHmac({
@@ -50,7 +50,7 @@ defineHmac({
   names: ['hmac-with-sha-256']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.1',
-  supplier: (hash, key) => new HmacImpl(hash, key)
+  supplier: (hash) => new HmacImpl(hash)
 });
 
 defineHmac({
@@ -58,7 +58,7 @@ defineHmac({
   names: ['hmac-with-sha-384']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.2',
-  supplier: (hash, key) => new HmacImpl(hash, key)
+  supplier: (hash) => new HmacImpl(hash)
 });
 
 defineHmac({
@@ -66,12 +66,11 @@ defineHmac({
   names: ['hmac-with-sha-512']
 }, {
   digestOid: '2.16.840.1.101.3.4.2.3',
-  supplier: (hash, key) => new HmacImpl(hash, key)
+  supplier: (hash) => new HmacImpl(hash)
 });
 
 export function createHmac(
-  algorithm: string,
-  key: Buffer
+  algorithm: string
 ): Hmac | undefined {
   const factory = oidMap[algorithm] || nameMap[algorithm];
   if (!factory) {
@@ -81,7 +80,7 @@ export function createHmac(
   if (!hash) {
     return undefined;
   }
-  return factory.supplier(hash, key);
+  return factory.supplier(hash);
 }
 
 export function getHashByHmacAlgorithm(algorithm: string): Hash | undefined {
@@ -92,8 +91,8 @@ export function getHashByHmacAlgorithm(algorithm: string): Hash | undefined {
   return createHash(factory.digestOid);
 }
 
-export function createHmacByHash(hash: Hash, key: Buffer): Hmac | undefined {
-  return new HmacImpl(hash, key);
+export function createHmacByHash(hash: Hash): Hmac | undefined {
+  return new HmacImpl(hash);
 }
 
 export function getHmacAlgorithms(): readonly HmacAlgorithmInfo[] {

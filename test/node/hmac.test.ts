@@ -42,10 +42,11 @@ describe('HMAC', function () {
       Buffer.from('6c11506874013cac6a2abc1bb382627cec6a90d86efc012de7afec5a', 'hex')
     ];
     testVectors.forEach((item, index) => {
-      const hmac = cc.createHmac(algo, item.key);
+      const hmac = cc.createHmac(algo);
       if (!hmac) {
         throw new Error('hmac is null');
       }
+      hmac.init(item.key);
       hmac.update(item.message);
       const output = hmac.digest();
       expect(output, `Test Case ${index + 1}`).eql(expectedValues[index]);
@@ -60,10 +61,11 @@ describe('HMAC', function () {
       Buffer.from('82558a389a443c0ea4cc819899f2083a85f0faa3e578f8077a2e3ff46729665b', 'hex')
     ];
     testVectors.forEach((item, index) => {
-      const hmac = cc.createHmac(algo, item.key);
+      const hmac = cc.createHmac(algo);
       if (!hmac) {
         throw new Error('hmac is null');
       }
+      hmac.init(item.key);
       hmac.update(item.message);
       const output = hmac.digest();
       expect(output, `Test Case ${index + 1}`).eql(expectedValues[index]);

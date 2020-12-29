@@ -158,15 +158,16 @@ describe('AES', function () {
           if (USE_CONSOLE_OUTPUT) {
             console.log(`vector algo=${algo}, count=${vector.count}`);
           }
-          const cipher = cc.createCipher(algo, {
-            key: vector.key,
-            iv: vector.iv,
-            authTagLength: group.tagLen / 8
-          });
+          const cipher = cc.createCipher(algo);
           const ctBuffers: Buffer[] = [];
           if (!cipher) {
             throw new Error('cipher is null');
           }
+          cipher.init({
+            key: vector.key,
+            iv: vector.iv,
+            authTagLength: group.tagLen / 8
+          });
           if (group.aadLen) {
             cipher.setAAD(vector.aad);
           }
@@ -212,15 +213,16 @@ describe('AES', function () {
           if (USE_CONSOLE_OUTPUT) {
             console.log(`vector algo=${algo}, count=${vector.count}, fail=${vector.fail}`);
           }
-          const cipher = cc.createDecipher(algo, {
-            key: vector.key,
-            iv: vector.iv,
-            authTagLength: group.tagLen / 8
-          });
+          const cipher = cc.createDecipher(algo);
           const ptBuffers: Buffer[] = [];
           if (!cipher) {
             throw new Error('cipher is null');
           }
+          cipher.init({
+            key: vector.key,
+            iv: vector.iv,
+            authTagLength: group.tagLen / 8
+          });
           if (group.aadLen) {
             cipher.setAAD(vector.aad);
           }

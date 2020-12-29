@@ -1,3 +1,4 @@
+import * as stream from 'stream';
 import {
   Cipher, Decipher, CipherOptions
 } from './interface';
@@ -8,8 +9,8 @@ export interface CipherNameOptions {
   names: string[];
 }
 export interface CipherFactoryOptions {
-  cipherSupplier: (opts: CipherOptions) => Cipher;
-  decipherSupplier: (opts: CipherOptions) => Decipher;
+  cipherSupplier: (streamOptions: stream.TransformOptions | undefined) => Cipher;
+  decipherSupplier: (streamOptions: stream.TransformOptions | undefined) => Decipher;
 }
 
 export interface CipherAlgorithmInfo extends CipherNameOptions {
@@ -28,65 +29,65 @@ defineCipher({
   oid: '2.16.840.1.101.3.4.1.6',
   names: ['aes-128-gcm']
 }, {
-  cipherSupplier: (opts: CipherOptions) => new CryptoModuleCipher('aes-128-gcm', opts),
-  decipherSupplier: (opts: CipherOptions) => new CryptoModuleDecipher('aes-128-gcm', opts)
+  cipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleCipher('aes-128-gcm', true, true, 128, 128, opts),
+  decipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleDecipher('aes-128-gcm', true, true, 128, 128, opts)
 });
 defineCipher({
   oid: '2.16.840.1.101.3.4.1.7',
   names: ['aes-128-ccm']
 }, {
-  cipherSupplier: (opts: CipherOptions) => new CryptoModuleCipher('aes-128-ccm', opts),
-  decipherSupplier: (opts: CipherOptions) => new CryptoModuleDecipher('aes-128-ccm', opts)
+  cipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleCipher('aes-128-ccm', true, true, 128, 128, opts),
+  decipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleDecipher('aes-128-ccm', true, true, 128, 128, opts)
 });
 defineCipher({
   oid: '2.16.840.1.101.3.4.1.26',
   names: ['aes-192-gcm']
 }, {
-  cipherSupplier: (opts: CipherOptions) => new CryptoModuleCipher('aes-192-gcm', opts),
-  decipherSupplier: (opts: CipherOptions) => new CryptoModuleDecipher('aes-192-gcm', opts)
+  cipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleCipher('aes-192-gcm', true, true, 192, 128, opts),
+  decipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleDecipher('aes-192-gcm', true, true, 192, 128, opts)
 });
 defineCipher({
   oid: '2.16.840.1.101.3.4.1.27',
   names: ['aes-192-ccm']
 }, {
-  cipherSupplier: (opts: CipherOptions) => new CryptoModuleCipher('aes-192-ccm', opts),
-  decipherSupplier: (opts: CipherOptions) => new CryptoModuleDecipher('aes-192-ccm', opts)
+  cipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleCipher('aes-192-ccm', true, true, 192, 128, opts),
+  decipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleDecipher('aes-192-ccm', true, true, 192, 128, opts)
 });
 defineCipher({
   oid: '2.16.840.1.101.3.4.1.46',
   names: ['aes-256-gcm']
 }, {
-  cipherSupplier: (opts: CipherOptions) => new CryptoModuleCipher('aes-256-gcm', opts),
-  decipherSupplier: (opts: CipherOptions) => new CryptoModuleDecipher('aes-256-gcm', opts)
+  cipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleCipher('aes-256-gcm', true, true, 256, 128, opts),
+  decipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleDecipher('aes-256-gcm', true, true, 256, 128, opts)
 });
 defineCipher({
   oid: '2.16.840.1.101.3.4.1.47',
   names: ['aes-256-ccm']
 }, {
-  cipherSupplier: (opts: CipherOptions) => new CryptoModuleCipher('aes-256-ccm', opts),
-  decipherSupplier: (opts: CipherOptions) => new CryptoModuleDecipher('aes-256-ccm', opts)
+  cipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleCipher('aes-256-ccm', true, true, 256, 128, opts),
+  decipherSupplier: (opts: stream.TransformOptions | undefined) => new CryptoModuleDecipher('aes-256-ccm', true, true, 256, 128, opts)
 });
 
 export function createCipher(
   algorithm: string,
-  options: CipherOptions
+  streamOptions?: stream.TransformOptions | undefined
 ): Cipher | undefined {
   const factory = oidMap[algorithm] || nameMap[algorithm];
   if (!factory) {
     return undefined;
   }
-  return factory.cipherSupplier(options);
+  return factory.cipherSupplier(streamOptions);
 }
 
 export function createDecipher(
   algorithm: string,
-  options: CipherOptions
+  streamOptions?: stream.TransformOptions | undefined
 ): Decipher | undefined {
   const factory = oidMap[algorithm] || nameMap[algorithm];
   if (!factory) {
     return undefined;
   }
-  return factory.decipherSupplier(options);
+  return factory.decipherSupplier(streamOptions);
 }
 
 export function getCipherAlgorithms(): readonly CipherAlgorithmInfo[] {

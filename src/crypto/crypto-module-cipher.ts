@@ -34,18 +34,32 @@ function fixedFinal (this: any) {
 }
 
 export class CryptoModuleCipher extends stream.Transform implements Cipher {
-  private _cipher: crypto.CipherGCM;
+  public readonly isStreamMode: boolean;
+  public readonly isAEAD: boolean;
+  public readonly keySize: number;
+  public readonly blockSize: number;
+  private readonly _algo: string;
+  private _cipher!: crypto.CipherGCM;
   private _authTagLength: number = 0;
 
-  constructor(algo: string, opts: CipherOptions) {
-    super();
+  constructor(algo: string, isStreamMode: boolean, isAEAD: boolean, keySize: number, blockSize: number, opts?: stream.TransformOptions | undefined) {
+    super(opts);
+    this._algo = algo;
+    this.isStreamMode = isStreamMode;
+    this.isAEAD = isAEAD;
+    this.keySize = keySize;
+    this.blockSize = blockSize;
+  }
+
+  init(opts: CipherOptions): this {
     const iv = opts.iv || null;
-    const cipher: any = crypto.createCipheriv(algo as any, opts.key, iv, opts);
+    const cipher: any = crypto.createCipheriv(this._algo as any, opts.key, iv, opts);
     if (!cipher) {
-      throw new Error(`${algo} algorithm not supported`);
+      throw new Error(`${this._algo} algorithm not supported`);
     }
     this._cipher = cipher;
     this._authTagLength = opts.authTagLength || 16;
+    return this;
   }
 
   final(): Buffer {
@@ -88,15 +102,28 @@ export class CryptoModuleCipher extends stream.Transform implements Cipher {
 }
 
 export class CryptoModuleDecipher extends stream.Transform implements Decipher {
-  private _cipher: crypto.DecipherGCM;
+  public readonly isStreamMode: boolean;
+  public readonly isAEAD: boolean;
+  public readonly keySize: number;
+  public readonly blockSize: number;
+  private readonly _algo: string;
+  private _cipher!: crypto.DecipherGCM;
   private _authTagLength: number = 0;
 
-  constructor(algo: string, opts: CipherOptions) {
-    super();
+  constructor(algo: string, isStreamMode: boolean, isAEAD: boolean, keySize: number, blockSize: number, opts?: stream.TransformOptions | undefined) {
+    super(opts);
+    this._algo = algo;
+    this.isStreamMode = isStreamMode;
+    this.isAEAD = isAEAD;
+    this.keySize = keySize;
+    this.blockSize = blockSize;
+  }
+
+  init(opts: CipherOptions): this {
     const iv = opts.iv || null;
-    const cipher: any = crypto.createDecipheriv(algo as any, opts.key, iv, opts);
+    const cipher: any = crypto.createDecipheriv(this._algo as any, opts.key, iv, opts);
     if (!cipher) {
-      throw new Error(`${algo} algorithm not supported`);
+      throw new Error(`${this._algo} algorithm not supported`);
     }
     this._cipher = cipher;
     this._authTagLength = opts.authTagLength || 16;
@@ -104,6 +131,7 @@ export class CryptoModuleDecipher extends stream.Transform implements Decipher {
       cipher._authTagLength = this._authTagLength;
       cipher.final = fixedFinal;
     }
+    return this;
   }
 
   final(): Buffer {

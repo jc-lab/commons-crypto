@@ -7,7 +7,30 @@ export interface CipherOptions extends stream.TransformOptions {
   authTagLength?: number;
 }
 
-export interface Cipher extends stream.Transform {
+interface CipherBase extends stream.Transform {
+  /**
+   * stream mode
+   */
+  readonly isStreamMode: boolean;
+
+  /**
+   * AEAD Support
+   */
+  readonly isAEAD: boolean;
+
+  /**
+   * key size bits
+   */
+  readonly keySize: number;
+
+  /**
+   * block size bits
+   */
+  readonly blockSize: number;
+}
+
+export interface Cipher extends CipherBase {
+  init(options: CipherOptions): this;
   update(data: BinaryLike): Buffer;
   final(): Buffer;
   setAutoPadding(auto_padding?: boolean): this;
@@ -22,7 +45,8 @@ export interface Cipher extends stream.Transform {
   getAuthTag(): Buffer;
 }
 
-export interface Decipher extends stream.Transform {
+export interface Decipher extends CipherBase {
+  init(options: CipherOptions): this;
   update(data: BinaryLike): Buffer;
   final(): Buffer;
   setAutoPadding(auto_padding?: boolean): this;

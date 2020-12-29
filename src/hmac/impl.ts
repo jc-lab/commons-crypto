@@ -13,18 +13,26 @@ function xorWithByte(input: Buffer, value: number): Buffer {
 }
 
 export class HmacImpl extends stream.Transform implements Hmac {
-  private _outputHash: Hash;
-  private _messageHash: Hash;
+  private _baseHash: Hash;
+  private _outputHash!: Hash;
+  private _messageHash!: Hash;
 
-  constructor(hash: Hash, key: Buffer) {
+  constructor(hash: Hash) {
     super();
+    this._baseHash = hash;
+  }
+
+  init(key: Buffer): this {
+    const hash = this._baseHash;
+
+    const blockSizeBytes = hash.blockSize / 8;
 
     let _key: Buffer = key;
-    if (key.byteLength > hash.blockSize) {
+    if (key.byteLength > blockSizeBytes) {
       _key = hash.clone().update(key).digest();
     }
-    if (_key.byteLength < hash.blockSize) {
-      const temp = Buffer.alloc(hash.blockSize);
+    if (_key.byteLength < blockSizeBytes) {
+      const temp = Buffer.alloc(blockSizeBytes);
       _key.copy(temp);
       _key = temp;
     }
@@ -36,6 +44,8 @@ export class HmacImpl extends stream.Transform implements Hmac {
       .update(oKeyPad);
     this._messageHash = hash.clone()
       .update(iKeyPad);
+
+    return this;
   }
 
   digest(): Buffer {
@@ -44,7 +54,7 @@ export class HmacImpl extends stream.Transform implements Hmac {
       .digest();
   }
 
-  update(data: BinaryLike): Hmac {
+  update(data: BinaryLike): this {
     this._messageHash.update(data);
     return this;
   }
