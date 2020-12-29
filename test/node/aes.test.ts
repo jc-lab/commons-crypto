@@ -131,6 +131,7 @@ function readTestVector(file: string): TestVectorGroup[] {
 }
 
 describe('AES', function () {
+  this.timeout(10000);
   // https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/CAVP-TESTING-BLOCK-CIPHER-MODES#GCMVS
   it('AES-GCM Encrypt Test Vectors', function () {
     const testFiles = [

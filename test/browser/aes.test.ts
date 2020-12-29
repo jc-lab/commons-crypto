@@ -133,16 +133,26 @@ function readTestVector(file: string): TestVectorGroup[] {
 }
 
 describe('AES', function () {
+  this.timeout(10000);
   // https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/CAVP-TESTING-BLOCK-CIPHER-MODES#GCMVS
-
-  [
-    path.join(GCM_TEST_VECTOR_DIR, 'gcmEncryptExtIV128.rsp'),
-    path.join(GCM_TEST_VECTOR_DIR, 'gcmEncryptExtIV192.rsp'),
-    path.join(GCM_TEST_VECTOR_DIR, 'gcmEncryptExtIV256.rsp')
-  ].forEach((testVectorFile) => {
-    const groups = readTestVector(testVectorFile);
-    groups.forEach((group) => {
-      it(`AES-${group.keyLen}-GCM Encrypt Test Vector: ivLen=${group.ivLen}, ptLen=${group.ptLen}, aadLen=${group.aadLen}, tagLen=${group.tagLen}`, function () {
+  it('AES-GCM Encrypt Test Vectors', function () {
+    const testFiles = [
+      path.join(GCM_TEST_VECTOR_DIR, 'gcmEncryptExtIV128.rsp'),
+      path.join(GCM_TEST_VECTOR_DIR, 'gcmEncryptExtIV192.rsp'),
+      path.join(GCM_TEST_VECTOR_DIR, 'gcmEncryptExtIV256.rsp')
+    ];
+    testFiles.forEach((testVectorFile) => {
+      const groups = readTestVector(testVectorFile);
+      groups.forEach((group) => {
+        if (USE_CONSOLE_OUTPUT) {
+          console.log('group:', {
+            keyLen: group.keyLen,
+            ivLen: group.ivLen,
+            ptLen: group.ptLen,
+            aadLen: group.aadLen,
+            tagLen: group.tagLen
+          });
+        }
         group.vectors.forEach((vector) => {
           const algo = `aes-${group.keyLen}-gcm`;
           if (USE_CONSOLE_OUTPUT) {
@@ -179,15 +189,24 @@ describe('AES', function () {
       });
     });
   });
-
-  [
-    path.join(GCM_TEST_VECTOR_DIR, 'gcmDecrypt128.rsp'),
-    path.join(GCM_TEST_VECTOR_DIR, 'gcmDecrypt192.rsp'),
-    path.join(GCM_TEST_VECTOR_DIR, 'gcmDecrypt256.rsp')
-  ].forEach((testVectorFile) => {
-    const groups = readTestVector(testVectorFile);
-    groups.forEach((group) => {
-      it(`AES-${group.keyLen}-GCM Decrypt Test Vector: ivLen=${group.ivLen}, ptLen=${group.ptLen}, aadLen=${group.aadLen}, tagLen=${group.tagLen}`, function () {
+  it('AES-GCM Decrypt Test Vectors', function () {
+    const testFiles = [
+      path.join(GCM_TEST_VECTOR_DIR, 'gcmDecrypt128.rsp'),
+      path.join(GCM_TEST_VECTOR_DIR, 'gcmDecrypt192.rsp'),
+      path.join(GCM_TEST_VECTOR_DIR, 'gcmDecrypt256.rsp')
+    ];
+    testFiles.forEach((testVectorFile) => {
+      const groups = readTestVector(testVectorFile);
+      groups.forEach((group) => {
+        if (USE_CONSOLE_OUTPUT) {
+          console.log('group:', {
+            keyLen: group.keyLen,
+            ivLen: group.ivLen,
+            ptLen: group.ptLen,
+            aadLen: group.aadLen,
+            tagLen: group.tagLen
+          });
+        }
         group.vectors.forEach((vector) => {
           const algo = `aes-${group.keyLen}-gcm`;
           if (USE_CONSOLE_OUTPUT) {
