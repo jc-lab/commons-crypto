@@ -269,6 +269,11 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
       return this.rawToKey(type, arrayBufferToBuffer(keyObject));
     }
   }
+
+  public toPublicKey(key: AsymmetricKeyObject): EllipticKeyObject {
+    const _key = key as EllipticKeyObject;
+    return this.rawToKey('public', _key.getECKeyPair().getPublic().encode('array', false));
+  }
 }
 
 export class SpecialCurveAlgorithm extends EllipticAlgorithm {

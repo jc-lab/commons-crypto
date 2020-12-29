@@ -12,9 +12,14 @@ export interface CipherFactoryOptions {
   decipherSupplier: (opts: CipherOptions) => Decipher;
 }
 
+export interface CipherAlgorithmInfo extends CipherNameOptions {
+}
+
+const algorithmList: CipherAlgorithmInfo[] = [];
 const oidMap: Record<string, CipherFactoryOptions> = {};
 const nameMap: Record<string, CipherFactoryOptions> = {};
 export function defineCipher(nameOptions: CipherNameOptions, factoryOptions: CipherFactoryOptions) {
+  algorithmList.push(nameOptions);
   oidMap[nameOptions.oid] = factoryOptions;
   nameOptions.names.forEach((v) => nameMap[v] = factoryOptions);
 }
@@ -82,4 +87,8 @@ export function createDecipher(
     return undefined;
   }
   return factory.decipherSupplier(options);
+}
+
+export function getCipherAlgorithms(): readonly CipherAlgorithmInfo[] {
+  return Object.freeze(algorithmList);
 }

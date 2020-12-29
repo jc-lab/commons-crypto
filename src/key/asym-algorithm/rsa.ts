@@ -200,4 +200,8 @@ export class RSAKeyAlgorithm extends AsymmetricKeyAlgorithm {
     }
     throw new Error('Unknown error');
   }
+
+  toPublicKey(key: AsymmetricKeyObject): AsymmetricKeyObject {
+    throw new Error('Not implemented yet');
+  }
 }

@@ -148,6 +148,8 @@ export abstract class AsymmetricKeyAlgorithm {
     data: Buffer,
     pemTitle: string
   };
+
+  public abstract toPublicKey(key: AsymmetricKeyObject): AsymmetricKeyObject;
 }
 
 const S_AsymmetricKeyObject = Symbol('AsymmetricKeyObject');
@@ -209,5 +211,9 @@ export abstract class AsymmetricKeyObject extends KeyObject {
   }
   public get privateDecryptable(): boolean {
     return this.getKeyAlgorithm().cryptable && this.isPrivate();
+  }
+
+  public toPublicKey(): AsymmetricKeyObject {
+    return this.getKeyAlgorithm().toPublicKey(this);
   }
 }

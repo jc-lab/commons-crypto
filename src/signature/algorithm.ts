@@ -15,9 +15,18 @@ export interface SignatureFactoryOptions {
   supplier: SignatureSupplier;
 }
 
+export interface SignatureAlgorithmInfo extends SignatureNameOptions {
+  digestOid: string;
+}
+
+const algorithmList: SignatureAlgorithmInfo[] = [];
 const oidMap: Record<string, SignatureFactoryOptions> = {};
 const nameMap: Record<string, SignatureFactoryOptions> = {};
 export function defineSignature(nameOptions: SignatureNameOptions, factoryOptions: SignatureFactoryOptions) {
+  algorithmList.push({
+    ...nameOptions,
+    digestOid: factoryOptions.digestOid
+  });
   oidMap[nameOptions.oid] = factoryOptions;
   nameOptions.names.forEach((v) => nameMap[v.toLowerCase()] = factoryOptions);
   nameOptions.names.forEach((v) => nameMap[v.toLowerCase().replace(/-/g, '')] = factoryOptions);
@@ -105,4 +114,8 @@ export function createSignatureByAlgorithm(
     return undefined;
   }
   return factory.supplier(factory.digestOid, key, opts);
+}
+
+export function getSignatureAlgorithms(): readonly SignatureAlgorithmInfo[] {
+  return Object.freeze(algorithmList);
 }
