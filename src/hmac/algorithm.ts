@@ -84,6 +84,18 @@ export function createHmac(
   return factory.supplier(hash, key);
 }
 
+export function getHashByHmacAlgorithm(algorithm: string): Hash | undefined {
+  const factory = oidMap[algorithm] || nameMap[algorithm];
+  if (!factory) {
+    return undefined;
+  }
+  return createHash(factory.digestOid);
+}
+
+export function createHmacByHash(hash: Hash, key: Buffer): Hmac | undefined {
+  return new HmacImpl(hash, key);
+}
+
 export function getHmacAlgorithms(): readonly HmacAlgorithmInfo[] {
   return Object.freeze(algorithmList);
 }
