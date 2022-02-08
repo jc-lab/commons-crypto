@@ -11,6 +11,9 @@ module.exports = {
     extensions: ['.js', '.ts', '.tsx', '.json'],
     alias: {
       buffer: require.resolve('buffer/')
+    },
+    fallback: {
+      'stream': require.resolve('stream-browserify')
     }
   },
   module: {
