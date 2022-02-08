@@ -13,7 +13,8 @@ module.exports = {
       buffer: require.resolve('buffer/')
     },
     fallback: {
-      'stream': require.resolve('stream-browserify')
+      'stream': require.resolve('stream-browserify'),
+      'crypto': require.resolve('crypto-browserify'),
     }
   },
   module: {
