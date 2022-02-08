@@ -29,8 +29,8 @@ export function privateDecrypt (privateKey: BNRSAPrivateKey, enc: Buffer, revers
     _padding = 4;
   }
 
-  let key = privateKey;
-  let k = key.modulus.byteLength();
+  const key = privateKey;
+  const k = key.modulus.byteLength();
   if (enc.length > k || new BN(enc).cmp(key.modulus) >= 0) {
     throw new Error('decryption error');
   }
@@ -40,7 +40,7 @@ export function privateDecrypt (privateKey: BNRSAPrivateKey, enc: Buffer, revers
   } else {
     msg = crt(enc, key);
   }
-  let zBuffer = Buffer.alloc(k - msg.length);
+  const zBuffer = Buffer.alloc(k - msg.length);
   msg = Buffer.concat([zBuffer, msg], k);
   if (_padding === 4) {
     return oaep(key, msg);
@@ -54,16 +54,16 @@ export function privateDecrypt (privateKey: BNRSAPrivateKey, enc: Buffer, revers
 }
 
 function oaep (key: BNRSAPrivateKey, msg: Buffer): Buffer {
-  let k = key.modulus.byteLength();
-  let iHash = createHash('sha1').update(Buffer.alloc(0)).digest();
-  let hLen = iHash.length;
+  const k = key.modulus.byteLength();
+  const iHash = createHash('sha1').update(Buffer.alloc(0)).digest();
+  const hLen = iHash.length;
   if (msg[0] !== 0) {
     throw new Error('decryption error');
   }
-  let maskedSeed = msg.slice(1, hLen + 1);
-  let maskedDb = msg.slice(hLen + 1);
-  let seed = xor(maskedSeed, mgf(maskedDb, hLen));
-  let db = xor(maskedDb, mgf(seed, k - hLen - 1));
+  const maskedSeed = msg.slice(1, hLen + 1);
+  const maskedDb = msg.slice(hLen + 1);
+  const seed = xor(maskedSeed, mgf(maskedDb, hLen));
+  const db = xor(maskedDb, mgf(seed, k - hLen - 1));
   if (compare(iHash, db.slice(0, hLen))) {
     throw new Error('decryption error');
   }
@@ -78,7 +78,7 @@ function oaep (key: BNRSAPrivateKey, msg: Buffer): Buffer {
 }
 
 function pkcs1 (key: BNRSAPrivateKey, msg: Buffer, reverse?: boolean): Buffer {
-  let p1 = msg.slice(0, 2);
+  const p1 = msg.slice(0, 2);
   let i = 2;
   let status = 0;
   while (msg[i++] !== 0) {
@@ -87,7 +87,7 @@ function pkcs1 (key: BNRSAPrivateKey, msg: Buffer, reverse?: boolean): Buffer {
       break;
     }
   }
-  let ps = msg.slice(2, i - 1);
+  const ps = msg.slice(2, i - 1);
 
   if ((p1.toString('hex') !== '0002' && !reverse) || (p1.toString('hex') !== '0001' && reverse)) {
     status++;
@@ -101,8 +101,8 @@ function pkcs1 (key: BNRSAPrivateKey, msg: Buffer, reverse?: boolean): Buffer {
   return msg.slice(i);
 }
 function compare (a, b): number {
-  let _a = Buffer.from(a);
-  let _b = Buffer.from(b);
+  const _a = Buffer.from(a);
+  const _b = Buffer.from(b);
   let dif = 0;
   let len = _a.length;
   if (_a.length !== _b.length) {

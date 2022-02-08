@@ -26,7 +26,7 @@ export function publicEncrypt (publicKey: BNRSAPublicKey, msg: Buffer, reverse?:
   } else {
     _padding = 4;
   }
-  let key = publicKey;
+  const key = publicKey;
   let paddedMsg;
   if (_padding === 4) {
     paddedMsg = oaep(key, msg);
@@ -48,25 +48,25 @@ export function publicEncrypt (publicKey: BNRSAPublicKey, msg: Buffer, reverse?:
 }
 
 function oaep (key, msg) {
-  let k = key.modulus.byteLength();
-  let mLen = msg.length;
-  let iHash = createHash('sha1').update(Buffer.alloc(0)).digest();
-  let hLen = iHash.length;
-  let hLen2 = 2 * hLen;
+  const k = key.modulus.byteLength();
+  const mLen = msg.length;
+  const iHash = createHash('sha1').update(Buffer.alloc(0)).digest();
+  const hLen = iHash.length;
+  const hLen2 = 2 * hLen;
   if (mLen > k - hLen2 - 2) {
     throw new Error('message too long');
   }
-  let ps = Buffer.alloc(k - mLen - hLen2 - 2);
-  let dblen = k - hLen - 1;
-  let seed = randomBytes(hLen);
-  let maskedDb = xor(Buffer.concat([iHash, ps, Buffer.alloc(1, 1), msg], dblen), mgf(seed, dblen));
-  let maskedSeed = xor(seed, mgf(maskedDb, hLen));
+  const ps = Buffer.alloc(k - mLen - hLen2 - 2);
+  const dblen = k - hLen - 1;
+  const seed = randomBytes(hLen);
+  const maskedDb = xor(Buffer.concat([iHash, ps, Buffer.alloc(1, 1), msg], dblen), mgf(seed, dblen));
+  const maskedSeed = xor(seed, mgf(maskedDb, hLen));
   return new BN(Buffer.concat([Buffer.alloc(1), maskedSeed, maskedDb], k));
 }
 function pkcs1 (key: BNRSAPublicKey, msg: Buffer, reverse?: boolean): BN {
-  let mLen = msg.length;
+  const mLen = msg.length;
   const modulus = new BN(arrayBufferToBuffer(key.modulus));
-  let k = modulus.byteLength();
+  const k = modulus.byteLength();
   if (mLen > k - 11) {
     throw new Error('message too long');
   }
@@ -79,7 +79,7 @@ function pkcs1 (key: BNRSAPublicKey, msg: Buffer, reverse?: boolean): BN {
   return new BN(Buffer.concat([Buffer.from([0, reverse ? 1 : 2]), ps, Buffer.alloc(1), msg], k));
 }
 function nonZero (len: number): Buffer {
-  let out = Buffer.allocUnsafe(len);
+  const out = Buffer.allocUnsafe(len);
   let i = 0;
   let cache = randomBytes(len * 2);
   let cur = 0;

@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   target: 'web',
@@ -11,6 +12,10 @@ module.exports = {
     extensions: ['.js', '.ts', '.tsx', '.json'],
     alias: {
       buffer: require.resolve('buffer/')
+    },
+    fallback: {
+      'stream': require.resolve('stream-browserify'),
+      'crypto': require.resolve('crypto-browserify'),
     }
   },
   module: {
@@ -47,8 +52,12 @@ module.exports = {
   node: {
     __dirname: true
   },
-  plugins: [],
+  plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    })
+  ],
   optimization: {
     minimize: false
   }
-}
+};

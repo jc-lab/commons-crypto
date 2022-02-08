@@ -7,9 +7,9 @@ function arrayBufferToBufferAsArgument(ab): Buffer {
 }
 
 function arrayBufferToBufferCycle(ab): Buffer {
-  var buffer = Buffer.alloc(ab.byteLength);
-  var view = new Uint8Array(ab);
-  for (var i = 0; i < buffer.length; ++i) {
+  const buffer = Buffer.alloc(ab.byteLength);
+  const view = new Uint8Array(ab);
+  for (let i = 0; i < buffer.length; ++i) {
     buffer[i] = view[i];
   }
   return buffer;
@@ -22,9 +22,9 @@ export function bufferClone(value: ArrayBuffer): ArrayBuffer {
 export function bufferToArrayBuffer(buffer: Buffer | ArrayBuffer): ArrayBuffer {
   if (buffer instanceof ArrayBuffer)
     return buffer;
-  var ab = new ArrayBuffer(buffer.length);
-  var view = new Uint8Array(ab);
-  for (var i = 0; i < buffer.length; ++i) {
+  const ab = new ArrayBuffer(buffer.length);
+  const view = new Uint8Array(ab);
+  for (let i = 0; i < buffer.length; ++i) {
     view[i] = buffer[i];
   }
   return ab;

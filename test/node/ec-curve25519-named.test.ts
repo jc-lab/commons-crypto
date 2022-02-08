@@ -39,7 +39,7 @@ dbnP0Su9ocnJc9SbzWK9iB+3MD7ayxP7P7pOhllls6NZJcTsWU0eD6Zm1wth
 
   it('signature and verify are throw', function () {
     const signatureFn = priKeyA.sign.bind(priKeyA, digestOid, Buffer.from([0x1, 0x1, 0x1, 0x1]));
-    const verifyFn = pubKeyA.verify.bind(digestOid, Buffer.from([0x1, 0x1, 0x1, 0x1]), Buffer.from([]));
+    const verifyFn = pubKeyA.verify.bind(pubKeyA, digestOid, Buffer.from([0x1, 0x1, 0x1, 0x1]), Buffer.from([]));
 
     expect(signatureFn).to.throw;
     expect(verifyFn).to.throw;

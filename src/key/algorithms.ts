@@ -81,7 +81,7 @@ function createECDSAAlgorithm(keySpec: string): EllipticAlgorithm {
 }
 
 function createEllipticAsymmetricAlgorithm(type: AsymmetricAlgorithmType, keySpec: string | ECParametersChoice): EllipticAlgorithm {
-  let oid = getOidFromAsymmetricAlgorithmType(type);
+  const oid = getOidFromAsymmetricAlgorithmType(type);
   let ecParam: ECParametersChoice | undefined = undefined;
   if (typeof keySpec === 'string') {
     let ec: Curve | undefined;
