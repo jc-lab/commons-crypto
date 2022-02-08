@@ -7,9 +7,9 @@ function formatReturnValue (bn, enc?, len?): Buffer | string {
   if (!Array.isArray(bn)) {
     bn = bn.toArray();
   }
-  var buf = Buffer.from(bn);
+  let buf = Buffer.from(bn);
   if (len && buf.length < len) {
-    var zeros = Buffer.alloc(len - buf.length);
+    const zeros = Buffer.alloc(len - buf.length);
     zeros.fill(0);
     buf = Buffer.concat([zeros, buf]);
   }
@@ -56,7 +56,7 @@ export default class ECDH {
   }
 
   getPublicKey(enc, format: 'compressed' | 'uncompressed' | 'hybrid'): string | Buffer {
-    var key = this._keys.getPublic(format === 'compressed', 'array');
+    const key = this._keys.getPublic(format === 'compressed', 'array');
     if (format === 'hybrid') {
       if (key[key.length - 1] % 2) {
         key[0] = 7;
@@ -85,7 +85,7 @@ export default class ECDH {
 
   setPrivateKey(priv: Buffer | string, enc?: BufferEncoding): this {
     const _enc: BufferEncoding = enc || 'utf8';
-    let binaryPrivate: Buffer = Buffer.isBuffer(priv) ? priv : Buffer.from(priv, enc);
+    const binaryPrivate: Buffer = Buffer.isBuffer(priv) ? priv : Buffer.from(priv, enc);
     const _priv = new BN(binaryPrivate);
     const privText = _priv.toString(16);
     this._keys = this._ec.genKeyPair();

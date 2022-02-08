@@ -10,8 +10,8 @@ function fromDER (sig: Buffer): { r: BN, s: BN } {
   if (sig[position++] !== 0x30) {
     throw new Error('Unknown Signature');
   }
-  let totalLength = sig[position++] - 4;
-  let halfLength = totalLength / 2;
+  const totalLength = sig[position++] - 4;
+  const halfLength = totalLength / 2;
   if (sig[position++] !== 0x02) {
     throw new Error('Unknown Signature');
   }
@@ -47,7 +47,7 @@ function toDER (_r: BN, _s: BN): Buffer {
   if (r[0] & 0x80) r = [ 0 ].concat(r);
   if (s[0] & 0x80) s = [ 0 ].concat(s);
 
-  let total = r.length + s.length + 4;
+  const total = r.length + s.length + 4;
   let res = [ 0x30, total, 0x02, r.length ];
   res = res.concat(r, [ 0x02, s.length ], s);
   return Buffer.from(res);
@@ -74,8 +74,8 @@ function getKey (x, q, hash, algo) {
 }
 
 function bits2int (obits: Buffer, q: BN): BN {
-  let bits = new BN(obits);
-  let shift = (obits.length << 3) - q.bitLength();
+  const bits = new BN(obits);
+  const shift = (obits.length << 3) - q.bitLength();
   if (shift > 0) bits.ishrn(shift);
   return bits;
 }
