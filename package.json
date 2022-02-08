@@ -74,7 +74,7 @@
     "buffer": "^6.0.3",
     "create-hash": "^1.2.0",
     "create-hmac": "^1.1.7",
-    "elliptic": "^6.5.3",
+    "elliptic": "^6.5.4",
     "pvutils": "^1.0.17",
     "randombytes": "^2.1.0"
   }
