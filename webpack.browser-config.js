@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   target: 'web',
@@ -51,8 +52,12 @@ module.exports = {
   node: {
     __dirname: true
   },
-  plugins: [],
+  plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    })
+  ],
   optimization: {
     minimize: false
   }
-}
+};
