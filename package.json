@@ -6,8 +6,7 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "test": "npm run test:lint && npm run test:mocha",
-    "postinstall": "npm dedupe && node fix_modules.js",
-    "install": "npm dedupe && node fix_modules.js",
+    "postinstall": "node fix_modules.js",
     "test:lint": "eslint --ext \".js,.ts\" ./src",
     "fix:lint": "eslint --fix --ext \".js,.ts\" ./src",
     "test:mocha": "concurrently \"npm run test:mocha:node\" \"npm run test:mocha:browser\"",
@@ -58,8 +57,8 @@
     "ts-node": "^8.10.2",
     "tsc": "^1.20150623.0",
     "typescript": "^3.9.7",
-    "webpack": "^4.44.2",
-    "webpack-cli": "^4.3.0"
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1"
   },
   "dependencies": {
     "@peculiar/asn1-ecc": "^2.0.27",
