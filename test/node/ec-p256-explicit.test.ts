@@ -55,7 +55,7 @@ CVPixAg+NX9UHWyuxikHkVOfSJh6DUs=
       type: 'spki',
       format: 'pem'
     });
-    const reImported = (priKeyA.getKeyAlgorithm().keyImport(output, { format: 'pem' }) as any) as EllipticKeyObject;
+    const reImported = (priKeyA.getKeyAlgorithm().keyImport(output, { format: 'pem' }) as any) as cc.EllipticKeyObject;
     if (USE_CONSOLE_OUTPUT) {
       console.log('original    key X: ', priKeyA.getECKeyPair().getPublic().encode('hex', false));
       console.log('re-imported key X: ', reImported.getECKeyPair().getPublic().encode('hex', false));
