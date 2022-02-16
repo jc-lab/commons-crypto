@@ -2177,7 +2177,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bn.js@npm:^4.0.0, bn.js@npm:^4.1.0, bn.js@npm:^4.11.9":
+"bn.js@npm:^4.0.0, bn.js@npm:^4.1.0, bn.js@npm:^4.11.9, bn.js@npm:^4.4.0":
   version: 4.12.0
   resolution: "bn.js@npm:4.12.0"
   checksum: 39afb4f15f4ea537b55eaf1446c896af28ac948fdcf47171961475724d1bb65118cca49fa6e3d67706e4790955ec0e74de584e45c8f1ef89f46c812bee5b5a12
@@ -2616,7 +2616,7 @@ __metadata:
     create-hmac: ^1.1.7
     cross-env: ^7.0.3
     crypto-browserify: ^3.12.0
-    elliptic: ^6.5.4
+    elliptic: "https://github.com/openpgpjs/elliptic.git#3c323914344ab316036623e362db552d016366f9"
     eslint: ^8.6.0
     mocha: ^9.2.0
     mochapack: ^2.1.4
@@ -2910,7 +2910,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"elliptic@npm:^6.5.3, elliptic@npm:^6.5.4":
+"elliptic@https://github.com/openpgpjs/elliptic.git#3c323914344ab316036623e362db552d016366f9":
+  version: 6.5.1
+  resolution: "elliptic@https://github.com/openpgpjs/elliptic.git#commit=3c323914344ab316036623e362db552d016366f9"
+  dependencies:
+    bn.js: ^4.4.0
+    brorand: ^1.0.1
+    hash.js: ^1.0.0
+    hmac-drbg: ^1.0.0
+    inherits: ^2.0.1
+    minimalistic-assert: ^1.0.0
+    minimalistic-crypto-utils: ^1.0.0
+  checksum: 7710f386279031556e37175009d7438825540677cafa848594e30cfb4e187243932e0d2b5213d7e5cafd5cf0558f8d34bf89b085a0df8c5f91058521d7c0f1b5
+  languageName: node
+  linkType: hard
+
+"elliptic@npm:^6.5.3":
   version: 6.5.4
   resolution: "elliptic@npm:6.5.4"
   dependencies:
@@ -3627,7 +3642,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hmac-drbg@npm:^1.0.1":
+"hmac-drbg@npm:^1.0.0, hmac-drbg@npm:^1.0.1":
   version: 1.0.1
   resolution: "hmac-drbg@npm:1.0.1"
   dependencies:
@@ -4277,7 +4292,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimalistic-crypto-utils@npm:^1.0.1":
+"minimalistic-crypto-utils@npm:^1.0.0, minimalistic-crypto-utils@npm:^1.0.1":
   version: 1.0.1
   resolution: "minimalistic-crypto-utils@npm:1.0.1"
   checksum: 6e8a0422b30039406efd4c440829ea8f988845db02a3299f372fceba56ffa94994a9c0f2fd70c17f9969eedfbd72f34b5070ead9656a34d3f71c0bd72583a0ed
