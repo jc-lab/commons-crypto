@@ -42,7 +42,7 @@ export default class ECDH {
 
   computeSecret(other: elliptic.ec.KeyPair | string | Buffer, inputEncode?: BufferEncoding, enc?): string | Buffer {
     const _inputEncode: BufferEncoding = inputEncode || 'utf8';
-    let otherKey;
+    let otherKey: elliptic.ec.KeyPair;
     if (typeof other === 'string') {
       otherKey = this._ec.keyFromPublic(Buffer.from(other, _inputEncode));
     } else if (Buffer.isBuffer(other)) {
@@ -50,9 +50,8 @@ export default class ECDH {
     } else {
       otherKey = other;
     }
-    const otherPub = otherKey.getPublic();
-    const out = otherPub.mul(this._keys.getPrivate()).getX();
-    return formatReturnValue(out, enc, this._curveByteLength);
+    const output = this._keys.derive(otherKey.getPublic());
+    return formatReturnValue(output);
   }
 
   getPublicKey(enc, format: 'compressed' | 'uncompressed' | 'hybrid'): string | Buffer {

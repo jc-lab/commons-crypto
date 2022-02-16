@@ -62,7 +62,9 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
     const _publicKey: EllipticKeyObject = publicKey as EllipticKeyObject;
     const _privateKey: EllipticKeyObject = privateKey as EllipticKeyObject;
     ecdh.setKeyPair(_privateKey.getECKeyPair());
-    return ecdh.computeSecret(_publicKey.getECKeyPair()) as Buffer;
+    const output = ecdh.computeSecret(_publicKey.getECKeyPair()) as Buffer;
+    if (this._isLittleEndian()) return output.reverse();
+    return output;
   }
 
   privateDecrypt(data: Buffer, privateKey: AsymmetricKeyObject): Buffer {
@@ -87,7 +89,7 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
       throw new Error('Not supported operation');
     }
     const _publicKey = publicKey as EllipticKeyObject;
-    return this._ec.verify(hash, signature.toString('hex'), _publicKey.getECKeyPair());
+    return this._ec.verify(hash, signature, _publicKey.getECKeyPair());
   }
 
   generateKeyPair(): { privateKey: AsymmetricKeyObject; publicKey: AsymmetricKeyObject } {
@@ -113,7 +115,7 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
     const _addAlgorithmParams = (typeof addAlgorithmParams === 'undefined') ? true : addAlgorithmParams;
     const options: Partial<ECPrivateKey> = {
       version: 1,
-      privateKey: key.getECKeyPair().getPrivate().toBuffer()
+      privateKey: key.getECKeyPair().getPrivate().toBuffer(this._isLittleEndian() ? 'le' : 'be')
     };
     if (_addAlgorithmParams) {
       // Not required when export with PrivateKeyInfo
@@ -127,7 +129,11 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
 
   private _exportECPublicKey(key: EllipticKeyObject): ArrayBuffer {
     const publicKey = key.getECKeyPair().getPublic();
-    return Buffer.from(publicKey.encode('array', false));
+    const buffer = Buffer.from(publicKey.encode('array', false));
+    if (this._isLittleEndian()) {
+      return buffer.reverse();
+    }
+    return buffer;
   }
 
   _keyExport(key: AsymmetricKeyObject, options?: KeyExportOptions<'der' | 'pem'>): {
@@ -248,8 +254,17 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
     throw new Error('Unknown error');
   }
 
+  /**
+   * raw data to key
+   *
+   * @param type private or public
+   * @param data Little-endian key
+   */
   public rawToKey(type: 'private' | 'public', data: Uint8Array | Buffer | number[]): EllipticKeyObject {
     let keyPair: elliptic.ec.KeyPair;
+    if (this._isLittleEndian()) {
+      data = Buffer.from(data).reverse();
+    }
     if (type === 'private') {
       keyPair = this._ec.keyFromPrivate(data);
     } else {
@@ -272,7 +287,15 @@ export class EllipticAlgorithm extends AsymmetricKeyAlgorithm {
 
   public toPublicKey(key: AsymmetricKeyObject): EllipticKeyObject {
     const _key = key as EllipticKeyObject;
-    return this.rawToKey('public', _key.getECKeyPair().getPublic().encode('array', false));
+    const newKeyPair = this._ec.keyFromPublic(_key.getECKeyPair().getPublic().encode('array', false));
+    return new EllipticKeyObject(this, newKeyPair);
+  }
+
+  protected _isLittleEndian(): boolean {
+    return (
+      (this.type === AsymmetricAlgorithmType.x448) ||
+      (this.type === AsymmetricAlgorithmType.x25519)
+    );
   }
 }
 
@@ -287,7 +310,7 @@ export class SpecialCurveAlgorithm extends EllipticAlgorithm {
   }
 
   protected _exportECPrivateKey(key: EllipticKeyObject, addAlgorithmParams?: boolean): any {
-    return new OctetString(key.getECKeyPair().getPrivate().toArrayLike(Buffer));
+    return new OctetString(key.getECKeyPair().getPrivate().toBuffer(this._isLittleEndian() ? 'le' : 'be'));
   }
 
   public asnKeyObjectToKey(type: 'private' | 'public', keyObject: ArrayBuffer): EllipticKeyObject {
