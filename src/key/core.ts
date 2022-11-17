@@ -34,7 +34,7 @@ import { PublicKeyInfo } from './impl/asn/PublicKeyInfo';
 
 function createAsymmetricKeyWithType(
   pemTitle: PEMTitle,
-  asn: { offset: number, result: asn1js.LocalBaseBlock }): AsymmetricKeyObject {
+  asn: { offset: number, result: asn1js.AsnType }): AsymmetricKeyObject {
   if (pemTitle === 'PRIVATE KEY') {
     const privateKeyInfo = AsnParser.fromASN(asn.result, PrivateKeyInfo);
     return createAsymmetricKeyFromAsn(pemTitle, privateKeyInfo);
