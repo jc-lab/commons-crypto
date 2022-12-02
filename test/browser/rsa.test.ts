@@ -36,6 +36,11 @@ SdK4qvvX0bRql3YUTNQbsBDjPaV8RRHqHEw/NobbeqtX8QIRvF4eeRyjmLodI1G0
 N1JinKuM1XYpyKvqlQIDAQAB
 -----END PUBLIC KEY-----`);
 
+  it ('toPublicKey', function () {
+    const convertedPublicKey = priKey.toPublicKey();
+    expect(convertedPublicKey.equals(pubKey)).true;
+  });
+
   it('Import pkcs1 private key - same - pem', function () {
     const algorithm = priKey.getKeyAlgorithm();
 

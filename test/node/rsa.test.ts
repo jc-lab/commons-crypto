@@ -60,6 +60,11 @@ s2QyKSJ2+ZiRXRFpd7L3j6REj+YELpq+10s5lvkgbyU=
     expect(importedKey.equals(priKey)).to.equal(true);
   });
 
+  it ('toPublicKey', function () {
+    const convertedPublicKey = priKey.toPublicKey();
+    expect(convertedPublicKey.equals(pubKey)).true;
+  });
+
   it('Import pkcs1 private key - same - der', function () {
     const algorithm = priKey.getKeyAlgorithm();
 

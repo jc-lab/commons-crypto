@@ -202,6 +202,7 @@ export class RSAKeyAlgorithm extends AsymmetricKeyAlgorithm {
   }
 
   toPublicKey(key: AsymmetricKeyObject): AsymmetricKeyObject {
-    throw new Error('Not implemented yet');
+    const _key = key as RSAKeyObject;
+    return new RSAKeyObject(this, {} as any, null, _key.getBNPublicKey());
   }
 }
