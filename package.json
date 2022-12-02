@@ -14,8 +14,7 @@
     "test:mocha:browser": "mochapack --webpack-config webpack.browser-config.js -r test/browser/browser-helper.js --recursive test/browser/**/*.test.ts",
     "build": "npm run build:node && npm run build:browser",
     "build:node": "tsc",
-    "build:browser": "webpack --config webpack.browser-config.js",
-    "prepack": "npm run test && npm run build"
+    "build:browser": "webpack --config webpack.browser-config.js"
   },
   "repository": {
     "type": "git",
