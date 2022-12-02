@@ -16,6 +16,12 @@ export interface PrivateKeyInput {
   passphrase?: string | Buffer;
 }
 
+export interface CertificateInput {
+  key: string | Buffer;
+  format?: KeyFormat;
+  type?: 'x509';
+}
+
 export enum AsymmetricAlgorithmType {
   rsa = 0x01,
   ec = 0x02,

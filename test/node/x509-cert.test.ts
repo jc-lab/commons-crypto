@@ -77,7 +77,7 @@ describe('X509 Certificate Public Key', function () {
       '-----END CERTIFICATE-----\n'
   };
 
-  it('TestCA-EC-SHA256: PEM', function () {
+  it('TestCA-EC-SHA256: PEM to PublicKey Object', function () {
     const certPem = testCerts['TestCA-EC-SHA256'];
     const publicKey = cc.createAsymmetricKey({
       format: 'pem',
@@ -89,7 +89,7 @@ describe('X509 Certificate Public Key', function () {
     expect(publicKey.isSecret()).to.false;
   });
 
-  it('TestCA-RSA-SHA256: PEM', function () {
+  it('TestCA-RSA-SHA256: PEM to PublicKey Object', function () {
     const certPem = testCerts['TestCA-RSA-SHA256'];
     const publicKey = cc.createAsymmetricKey({
       format: 'pem',
@@ -101,7 +101,7 @@ describe('X509 Certificate Public Key', function () {
     expect(publicKey.isSecret()).to.false;
   });
 
-  it('Test1_of_TestCA-EC-SHA256: PEM', function () {
+  it('Test1_of_TestCA-EC-SHA256: PEM to PublicKey Object', function () {
     const certPem = testCerts['Test1_of_TestCA-EC-SHA256'];
     const publicKey = cc.createAsymmetricKey({
       format: 'pem',
@@ -113,7 +113,31 @@ describe('X509 Certificate Public Key', function () {
     expect(publicKey.isSecret()).to.false;
   });
 
-  it('Test1_of_TestCA-RSA-SHA256: PEM', function () {
+  it('Test1_of_TestCA-RSA-SHA256: PEM to PublicKey Object', function () {
+    const certPem = testCerts['Test1_of_TestCA-RSA-SHA256'];
+    const publicKey = cc.createAsymmetricKey({
+      format: 'pem',
+      key: certPem
+    });
+    should.exist(publicKey);
+    expect(publicKey.isPublic()).to.true;
+    expect(publicKey.isPrivate()).to.false;
+    expect(publicKey.isSecret()).to.false;
+  });
+
+  it('Test1_of_TestCA-EC-SHA256: PEM to Certificate Object', function () {
+    const certPem = testCerts['Test1_of_TestCA-EC-SHA256'];
+    const publicKey = cc.createCertificate({
+      format: 'pem',
+      key: certPem
+    });
+    should.exist(publicKey);
+    expect(publicKey.isPublic()).to.true;
+    expect(publicKey.isPrivate()).to.false;
+    expect(publicKey.isSecret()).to.false;
+  });
+
+  it('Test1_of_TestCA-RSA-SHA256: PEM to Certificate Object', function () {
     const certPem = testCerts['Test1_of_TestCA-RSA-SHA256'];
     const publicKey = cc.createAsymmetricKey({
       format: 'pem',

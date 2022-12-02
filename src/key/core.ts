@@ -16,7 +16,8 @@ import {
 import {
   AsymmetricKeyObject,
   PublicKeyInput,
-  PrivateKeyInput
+  PrivateKeyInput,
+  CertificateInput
 } from './interfaces';
 
 import {
@@ -31,6 +32,10 @@ import {
 
 import { ECPrivateKey } from './impl/asn/ECPrivateKey';
 import { PublicKeyInfo } from './impl/asn/PublicKeyInfo';
+import {
+  CertificateObject,
+  createCertificateFromAsn
+} from '../cert/certificate';
 
 function createAsymmetricKeyWithType(
   pemTitle: PEMTitle,
@@ -209,3 +214,30 @@ export function createAsymmetricKey(key: PrivateKeyInput | PublicKeyInput): Asym
   throw new Error('Unknown type');
 }
 
+export function createCertificate(cert: CertificateInput | string | Buffer): CertificateObject {
+  if (typeof cert === 'string') {
+    return createCertificate({
+      format: 'pem',
+      key: cert
+    });
+  } else if (Buffer.isBuffer(cert)) {
+    return createCertificate({
+      format: 'der',
+      key: cert
+    });
+  } else {
+    const format = cert.format || (Buffer.isBuffer(cert.key) ? 'der' : 'pem');
+    let der: Buffer;
+
+    if (format === 'pem') {
+      const pemResult = parsePem(cert.key as string);
+      der = pemResult.der;
+    } else {
+      der = cert.key as Buffer;
+    }
+
+    const asn = asn1js.fromBER(bufferToArrayBuffer(der));
+    const certificate = AsnParser.fromASN(asn.result, Certificate);
+    return createCertificateFromAsn(certificate);
+  }
+}
