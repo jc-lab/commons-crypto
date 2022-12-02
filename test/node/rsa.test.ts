@@ -246,13 +246,20 @@ PZnboU5qR8rYfq9D8wIDAQAB
 
   it('public encrypt and decrypt', function () {
     const cipherText = pubKey.publicEncrypt(Buffer.from('test'));
-    if(USE_CONSOLE_OUTPUT) {
+    if (USE_CONSOLE_OUTPUT) {
       console.log(`cipherText = ${cipherText.toString('hex')}`);
     }
     const decryptedText = priKey.privateDecrypt(cipherText).toString('ascii');
-    if(USE_CONSOLE_OUTPUT) {
+    if (USE_CONSOLE_OUTPUT) {
       console.log(`decryptedText = ${decryptedText}`);
     }
     expect(decryptedText).to.equal('test');
+  });
+
+  it('pre signed signature', function () {
+    const signature = Buffer.from('B57UUd0P+PpF1EfYbeFKsOF20MYCAXzOiAk7fuWwMp0gmNXnXzGsFHcoqg8HlBAz8a07c7iaS8Hn5hn0LwgJma6DApmX0QpC/LqfF+QWRsVh7Hj6D54Yt1/zT4+YvzCLofhai06vtdhWQqxaK10Iw8siM3KjSTxsxWThKmovkUM=', 'base64');
+    const digest = cc.createHash(digestOid.valueBlock.toString())?.update(Buffer.from('HELLO WORLD'))?.digest();
+
+    expect(pubKey.verify(digestOid, digest!!, signature)).to.true;
   });
 });

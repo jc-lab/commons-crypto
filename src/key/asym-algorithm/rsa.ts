@@ -56,7 +56,8 @@ export class RSAKeyAlgorithm extends AsymmetricKeyAlgorithm {
     }
     const digestInfo = new DigestInfo({
       digestAlgorithm: new AlgorithmIdentifier({
-        algorithm: (typeof digestOid === 'string') ? digestOid : digestOid.valueBlock.toString()
+        algorithm: (typeof digestOid === 'string') ? digestOid : digestOid.valueBlock.toString(),
+        parameters: null,
       }),
       digest: new OctetString(hash)
     });
@@ -75,7 +76,8 @@ export class RSAKeyAlgorithm extends AsymmetricKeyAlgorithm {
     }
     const digestInfo = new DigestInfo({
       digestAlgorithm: new AlgorithmIdentifier({
-        algorithm: (typeof digestOid === 'string') ? digestOid : digestOid.valueBlock.toString()
+        algorithm: (typeof digestOid === 'string') ? digestOid : digestOid.valueBlock.toString(),
+        parameters: null,
       }),
       digest: new OctetString(hash)
     });
