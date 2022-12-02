@@ -1,0 +1,3 @@
+export {
+  CertificateObject
+} from './certificate';

@@ -4,3 +4,4 @@ export * from './crypto';
 export * from './key';
 export * from './signature';
 export * from './hmac';
+export * from './cert';
