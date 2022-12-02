@@ -1,9 +1,11 @@
 import {
+  AsymmetricAlgorithmType,
   AsymmetricKeyAlgorithm,
-  AsymmetricKeyObject
+  AsymmetricKeyObject, KeyExportOptions
 } from '../key';
 import {AlgorithmIdentifier, Certificate} from '@peculiar/asn1-x509';
 import {fromKeyObjectAndOid} from '../key/key-parse';
+import * as asn1js from 'asn1js';
 
 export class CertificateObject extends AsymmetricKeyObject {
   public readonly publicKey: AsymmetricKeyObject;
@@ -47,6 +49,21 @@ export class CertificateObject extends AsymmetricKeyObject {
 
   isSecret(): boolean {
     return false;
+  }
+
+  public publicEncrypt(data: Buffer): Buffer {
+    return this.getKeyAlgorithm().publicEncrypt(data, this.publicKey);
+  }
+  public verify(digestOid: asn1js.ObjectIdentifier | string | null, hash: Buffer, signature: Buffer): boolean {
+    return this.getKeyAlgorithm().verify(digestOid, hash, signature, this.publicKey);
+  }
+  public export(options: KeyExportOptions<'pem'>): string;
+  public export(options?: KeyExportOptions<'der'>): Buffer;
+  public export(options?: KeyExportOptions<any>): string | Buffer {
+    throw Error('NOT IMPLEMENTED');
+  }
+  public toPublicKey(): AsymmetricKeyObject {
+    return this.getKeyAlgorithm().toPublicKey(this.publicKey);
   }
 }
 
